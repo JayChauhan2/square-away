@@ -321,7 +321,7 @@ export default function SquareAwayLanding() {
           </div>
           
           <div className="mt-8 pt-8 border-t border-slate-200/50 text-center text-sm text-slate-500 font-light">
-            © 2025 Square Away. Empowering mathematical minds through organic AI learning.
+            © 2025 Square Away. Made with ❤️ by Jay Chauhan.
           </div>
         </div>
       </footer>
