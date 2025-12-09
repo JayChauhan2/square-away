@@ -1,13 +1,13 @@
-
-import { useState, useRef } from 'react';
-import '../index.css';
+import { useState, useRef, useEffect } from 'react';
+import LaTeXToHTML from './LaTeXToHTML';
 
 export default function SquareAwayLanding() {
   const [files, setFiles] = useState([]);
+  const [latexContent, setLatexContent] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef(null);
 
   const handleFiles = (selectedFiles) => {
-    // Filter images only
     const imageFiles = Array.from(selectedFiles).filter(file =>
       file.type.startsWith('image/')
     );
@@ -35,22 +35,70 @@ export default function SquareAwayLanding() {
     if (files.length === 0) return;
 
     const formData = new FormData();
-    files.forEach(file => formData.append('images', file)); // sending first file only
+    files.forEach(file => formData.append('images', file));
+
+    setIsProcessing(true);
+    setLatexContent('');
 
     try {
       const response = await fetch('http://127.0.0.1:5000/upload', {
         method: 'POST',
         body: formData,
       });
-      console.log('Success');
+      
+      if (response.ok) {
+        console.log('Success');
+        alert('Upload successful! Click "Load LaTeX" to see the result.');
+      } else {
+        alert('Error uploading file');
+      }
     } catch (err) {
       console.error(err);
       alert('Error uploading file');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleLoadLatex = async () => {
+    setIsProcessing(true);
+    try {
+      const response = await fetch('./results/image.txt');
+      if (response.ok) {
+        let text = await response.text();
+        setLatexContent(text);
+      } else {
+        alert('Could not load LaTeX file. Make sure the file exists in results/');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error loading LaTeX file');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleLatexSave = async (newLatex) => {
+    try {
+      await fetch('http://127.0.0.1:5000/save-latex', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          latex: newLatex,
+          filename: 'image.txt'
+        }),
+      });
+    } catch (err) {
+      console.error('Error saving LaTeX:', err);
     }
   };
 
   return (
-    <div className="bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 min-h-screen flex flex-col items-center justify-center">
+    <div className="bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 min-h-screen flex flex-col items-center justify-center p-8">
+      <h1 className="text-4xl font-bold text-gray-800 mb-8">Upload your Notes to Begin</h1>
+      
       <div
         onDrop={handleDrop}
         onDragOver={handleDragOver}
@@ -84,11 +132,39 @@ export default function SquareAwayLanding() {
           </div>
           <button
             onClick={handleUpload}
-            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            disabled={isProcessing}
+            className="mt-4 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-semibold"
           >
-            Convert to LaTeX
+            {isProcessing ? 'Processing...' : 'Convert to LaTeX'}
           </button>
         </>
+      )}
+
+      {/* TEST BUTTON - Load LaTeX from results/image.txt */}
+      <div className="mt-8">
+        <button
+          onClick={handleLoadLatex}
+          disabled={isProcessing}
+          className="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-semibold"
+        >
+          {isProcessing ? 'Loading...' : 'Load LaTeX from results/image.txt'}
+        </button>
+      </div>
+
+      {isProcessing && (
+        <div className="mt-8 text-gray-600">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+          <p className="mt-4">Loading...</p>
+        </div>
+      )}
+
+      {latexContent && !isProcessing && (
+        <div className="mt-8 w-full max-w-4xl">
+          <LaTeXToHTML 
+            latex={latexContent} 
+            onLatexChange={handleLatexSave}
+          />
+        </div>
       )}
     </div>
   );

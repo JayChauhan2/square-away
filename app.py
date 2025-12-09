@@ -107,5 +107,24 @@ def upload_files():
 
     return jsonify({"message": "Files processed successfully", "results": results})
 
+@app.route('/save-latex', methods=['POST'])
+def save_latex():
+    data = request.json
+    filename = data.get('filename')
+    latex = data.get('latex')
+    
+    if not filename or not latex:
+        return jsonify({'error': 'Missing filename or latex content'}), 400
+    
+    # Save to results folder
+    filepath = os.path.join('results', filename)
+    
+    try:
+        with open(filepath, 'w', encoding='utf-8') as f:
+            f.write(latex)
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 if __name__ == '__main__':
     app.run(debug=True)
