@@ -1,0 +1,58 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{geometry}
+\geometry{margin=1in}
+
+\begin{document}
+
+\section*{Chapter 3.2 \quad Rolle's Theorem \& Mean Value Theorem}
+
+\subsection*{Rolle's Theorem}
+If a function is continuous on a closed interval $[a,b]$ and differentiable on the open interval $(a,b)$ and $f(a)=f(b)$, then there is at least one number in the interval $(a,b)$ where $f'(c)=0$.
+
+\paragraph{Example.} Find the two intercepts of $f(x)=x^{2}-3x+2$ and show $f'(x)=0$ at some point between the intercepts.
+
+\begin{enumerate}
+  \item Solve $f(x)=0$:
+  \[
+    x^{2}-3x+2=0 \quad\Longrightarrow\quad (x-1)(x-2)=0 \quad\Longrightarrow\quad x=1,2.
+  \]
+  \item Check $f(a)=f(b)$ for $a=1$, $b=2$:
+  \[
+    f(1)=0,\qquad f(2)=0,
+  \]
+  so the hypotheses of Rolle's Theorem apply on the interval $(1,2)$.
+  \item Find $c$ with $1<c<2$ by finding $f'(x)$:
+  \[
+    f(x)=x^{2}-3x+2,\qquad f'(x)=2x-3.
+  \]
+  Solve $f'(x)=0$:
+  \[
+    0=2x-3 \quad\Longrightarrow\quad x=\tfrac{3}{2}.
+  \]
+  Hence $c=\tfrac{3}{2}\in(1,2)$ and $f'(3/2)=0$.
+\end{enumerate}
+
+\subsection*{Mean Value Theorem}
+If a function is continuous on the closed interval $[a,b]$ and differentiable on the open interval $(a,b)$, then there exists a number $c$ in the open interval $(a,b)$ such that
+\[
+  f'(c)=\frac{f(b)-f(a)}{b-a}.
+\]
+The ``mean'' refers to the average rate of change of the function on the interval $[a,b]$.
+
+\paragraph{Example.} Find all values of $c$ on the interval $[0,\pi]$ for $f(x)=\sin x$.
+
+Compute the average rate of change:
+\[
+  \frac{f(\pi)-f(0)}{\pi-0}=\frac{\sin\pi-\sin 0}{\pi}=\frac{0-0}{\pi}=0.
+\]
+So there exists $c\in(0,\pi)$ with $f'(c)=0$. Since $f'(x)=\cos x$, solve
+\[
+  \cos x=0 \quad\Longrightarrow\quad x=\frac{\pi}{2}
+\]
+(in the interval $[0,\pi]$). Thus $c=\tfrac{\pi}{2}$.
+
+\end{document}
