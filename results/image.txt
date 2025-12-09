@@ -1,43 +1,67 @@
 \documentclass{article}
 
 \usepackage[margin=1in]{geometry}
-\usepackage{enumitem}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
 \usepackage{parskip}
-\usepackage[T1]{fontenc}
+\setlength{\parindent}{0pt}
 
 \begin{document}
-\begin{center}
-    {\Huge\textbf{SCHEDULE}}
-\end{center}
+\noindent\textbf{Chapter 3.2}\\
+\textbf{Rolle's Theorem \& Mean Value Theorem and YOUR MOM!}
 
 \bigskip
 
-\noindent\textbf{Setup 4--5 pm}
-\begin{itemize}[left=0pt]
-    \item Tanishq
-    \item Opal
-    \item Jay
-    \item Kaitlyn (will leave to get candy \& supplies)
-    \item Cleo (maybe)
-\end{itemize}
+\noindent\textbf{Rolle's Theorem}\\
+If a function is continuous on the closed interval $[a,b]$ and differentiable on the open interval $(a,b)$ and $f(a)=f(b)$, then there is at least one number in the interval $(a,b)$ where $f'(c)=0$.
 
-\noindent\textbf{Main Event 5--7 pm}
-\begin{itemize}[left=0pt]
-    \item Opal
-    \item Kaitlyn
-    \item Jay
-    \item Aditi
-    \item Tanishq (might need to switch between tables)
-    \item Nikita
-\end{itemize}
+\medskip
 
-\noindent\textit{*Lexi might come if debate finishes on time.}
+\noindent\textbf{Example.} Find the two intercepts of $f(x)=x^{2}-3x+2$ and show $f'(x)=0$ at some point between the intercepts.
+
+\begin{enumerate}
+  \item Set $f(x)=0$:
+  \[
+    x^{2}-3x+2=0
+  \]
+  \[
+    (x-1)(x-2)=0
+  \]
+  \[
+    x=1,\;2.
+  \]
+  \item Check $f(a)=f(b)$: $f(1)=f(2)=0$, so the hypotheses of Rolle's Theorem hold on the interval $[1,2]$ (function is a polynomial, hence continuous and differentiable everywhere).
+  \item Find $c$ with $1<c<2$ by computing $f'(x)$:
+  \[
+    f'(x)=2x-3.
+  \]
+  Set $f'(x)=0$:
+  \[
+    0=2x-3\quad\Rightarrow\quad x=\tfrac{3}{2}.
+  \]
+  Thus $c=\tfrac{3}{2}\in(1,2)$ and $f'(\tfrac{3}{2})=0$.
+\end{enumerate}
 
 \bigskip
 
-\noindent\textbf{Cleanup 7--7:30}
-\begin{itemize}[left=0pt]
-    \item All (minus Lexi (maybe))
-\end{itemize}
+\noindent\textbf{Mean Value Theorem}\\
+If a function is continuous on the closed interval $[a,b]$ and differentiable on the open interval $(a,b)$, then there exists a number $c$ in the open interval $(a,b)$ such that
+\[
+  f'(c)=\frac{f(b)-f(a)}{b-a}.
+\]
+The term ``mean'' refers to the average rate of change of the function on the interval $[a,b]$.
+
+\medskip
+
+\noindent\textbf{Example.} Find all values of $c$ on the interval $[0,\pi]$ for $f(x)=\sin x$ guaranteed by the Mean Value Theorem.
+
+\[
+  f'(c)=\frac{\sin(\pi)-\sin(0)}{\pi-0}=\frac{0-0}{\pi}=0.
+\]
+Since $f'(x)=\cos x$, we set $\cos x=0$. On $[0,\pi]$ this occurs at
+\[
+  x=\frac{\pi}{2}.
+\]
+Therefore $c=\dfrac{\pi}{2}$ is the point in $(0,\pi)$ with $f'(c)=0$, as predicted by the Mean Value Theorem.
 
 \end{document}

@@ -195,7 +195,6 @@ const LaTeXToHTML = ({ latex: initialLatex, onLatexChange }) => {
             backfaceVisibility: 'hidden',
           }}
         >
-          <h2 className="text-xl font-semibold mb-6 text-gray-700">Rendered Output</h2>
           <div className="bg-white border border-gray-200 rounded p-8">
             <div ref={containerRef} className="text-left leading-relaxed" />
           </div>
@@ -208,7 +207,7 @@ const LaTeXToHTML = ({ latex: initialLatex, onLatexChange }) => {
             backfaceVisibility: 'hidden',
           }}
         >
-          <h2 className="text-xl font-semibold mb-6 text-gray-700">LaTeX Source</h2>
+          <h2 className="text-xl font-semibold mb-6 text-gray-700">Edit Mode</h2>
           <textarea
             value={latex}
             onChange={(e) => handleLatexChange(e.target.value)}
