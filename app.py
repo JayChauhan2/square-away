@@ -8,6 +8,119 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import time
 import shutil
+import json
+import requests
+from dotenv import load_dotenv
+
+load_dotenv()  # Load environment variables from .env file
+model_api_key = os.getenv("MISTRAL_API_KEY")
+response = requests.post(
+  url="https://openrouter.ai/api/v1/chat/completions",
+  headers={
+    "Authorization": f"Bearer {model_api_key}",
+    "Content-Type": "application/json",
+  },
+  data=json.dumps({
+    "model": "mistralai/devstral-2512:free",
+    "messages": [
+      {
+        "role": "user",
+        "content": "What is the meaning of life?"
+      }
+    ]
+  })
+)
+
+# from groq import Groq
+
+# client = Groq()
+# completion = client.chat.completions.create(
+#     model="llama-3.3-70b-versatile",
+#     messages=[
+#       {
+#         "role": "user",
+#         "content": '''
+# You are an AI assistant that generates ONE complete Python script combining:
+
+# (1) Voiceover generation for each step using edge-tts, AND
+# (2) A runnable Manim (v0.17+) animation that uses the generated audio files.
+
+# Your output MUST be:
+# ------------------------------------------------------------
+# ONE Python file that contains BOTH:
+#     • A block of edge-tts voiceover generators (step1, step2, ...)
+#     • A Manim Scene class that uses:
+#           self.add_sound("stepX.mp3")
+#           self.wait(...)  # placeholder duration
+# ------------------------------------------------------------
+# No explanations. No comments outside the code block. Only the code. The video must be 1 minute maximum in length.
+
+# FULL REQUIREMENTS
+# -----------------
+# 1. Parse the provided LaTeX into logical steps:
+#    - headings
+#    - theorems
+#    - explanations
+#    - examples
+#    - equations
+
+# 2. For EACH step i:
+#    Generate a Python function:
+
+#        def make_voiceover_i():
+#            TEXT = """<narration text>"""
+#            VOICE = "en-GB-SoniaNeural"
+#            OUTPUT_FILE = f"step{i}.mp3"
+#            SRT_FILE = f"step{i}.srt"
+#            ... (full synchronous edge-tts code) ...
+
+#    All voiceover functions MUST appear BEFORE the Manim code.
+
+# 3. After generating all TTS blocks, generate a Manim Scene:
+
+#        class Explainer(Scene):
+#            def construct(self):
+#                # Step 1 animation
+#                <manim animations>
+#                self.add_sound("step1.mp3")
+#                self.wait(3)  # placeholder
+
+#                # Step 2 animation
+#                ...
+#                self.add_sound("step2.mp3")
+#                self.wait(3)
+
+#    Use Write(), FadeIn(), Transform(), MathTex(), Tex(), etc.
+
+# 4. The entire response MUST be ONLY the code — no text outside a single Python script.
+
+# 5. The very last lines of the script should include:
+
+#        if __name__ == "__main__":
+#            # generate all voiceovers
+#            make_voiceover_1()
+#            make_voiceover_2()
+#            ...
+#            # Manim render instructions as comments:
+#            # Run: manim -pqh script.py Explainer
+
+# 6. The script MUST be ready to run after pasting.
+
+# Here is the LaTeX content the script should explain:
+
+# {user_latex_here}
+
+
+# '''
+#       }
+#     ],
+#     temperature=1,
+#     max_completion_tokens=1024,
+#     top_p=1,
+#     stream=False,
+#     stop=None
+# )
+# answer = completion.choices[0].message.content
 
 UPLOAD_FOLDER = "uploads"
 RESULTS_FOLDER = "results"
@@ -128,3 +241,4 @@ def save_latex():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
