@@ -28,7 +28,7 @@ def clear_folder(folder_path):
 
 def extractText():
     # 1. Clear uploads and results folders
-    clear_folder(UPLOAD_FOLDER)
+    # clear_folder(UPLOAD_FOLDER)
     clear_folder(RESULTS_FOLDER)
 
     API_KEY = os.getenv("GOOGLE_API_KEY")
@@ -70,8 +70,7 @@ def extractText():
             ]
         )
         extracted_text += response.text + "\n"
-
-    print(response.text)
+    #here look over the extracted text and ensure that everything inside of it looks correct
     results_file_path = os.path.join(RESULTS_FOLDER, "results.txt")
     with open(results_file_path, "w", encoding="utf-8") as f:
         f.write(extracted_text)
@@ -204,6 +203,8 @@ def createVideo(user_latex_here):
 
     return llm_output
     #use it like result = createVideo(r"\text{Some LaTeX here}")
+
+extractText()
 
 app = Flask(__name__)
 
