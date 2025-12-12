@@ -3,6 +3,8 @@ from werkzeug.utils import secure_filename
 from flask_cors import CORS
 from google import genai
 from google.genai import types
+from pathlib import Path
+import subprocess
 import os
 import json
 import requests
@@ -226,10 +228,74 @@ def createVideo(user_latex_here):
     )
     data = response.json()
 
-    # Extract the assistant message content
+    # # Extract the assistant message content
     llm_output = data["choices"][0]["message"]["content"]
 
+    # return llm_output
+    # -------------------------------------------------------------
+    # 1. Extract ONLY the code after the "Manim" marker
+    # -------------------------------------------------------------
+    if "Manim" not in llm_output:
+        raise ValueError("LLM did not return a valid script with 'Manim' marker.")
+
+    script_text = llm_output.split("Manim", 1)[1].strip()
+
+    # Remove code fences if present
+    if script_text.startswith("```"):
+        script_text = script_text.split("```", 2)[1]
+
+    # -------------------------------------------------------------
+    # 2. Use a fixed script name — delete if it already exists
+    # -------------------------------------------------------------
+    script_name = "generated_manim_script.py"
+    script_path = Path(script_name)
+
+    if script_path.exists():
+        script_path.unlink()  # delete old file
+
+    # Write new script
+    with open(script_path, "w", encoding="utf-8") as f:
+        f.write(script_text)
+
+    # -------------------------------------------------------------
+    # 3. Determine path to your existing venv python and manim
+    # -------------------------------------------------------------
+    project_root = Path(__file__).parent
+    venv_python = project_root / ".venv" / "bin" / "python"
+    venv_manim  = project_root / ".venv" / "bin" / "manim"
+
+    if not venv_python.exists():
+        raise RuntimeError("Could not find .venv/bin/python — ensure venv exists.")
+
+    if not venv_manim.exists():
+        raise RuntimeError("Manim is not installed inside .venv.")
+
+    # -------------------------------------------------------------
+    # 4. Run the script to generate voiceovers
+    # -------------------------------------------------------------
+    subprocess.run(
+        [str(venv_python), str(script_path)],
+        cwd=project_root,
+        check=True
+    )
+
+    # -------------------------------------------------------------
+    # 5. Run Manim to render the video
+    # -------------------------------------------------------------
+    subprocess.run(
+        [
+            str(venv_manim),
+            "-qh",
+            script_name,
+            "Explainer"
+        ],
+        cwd=project_root,
+        check=True
+    )
+
     return llm_output
+
+
 
 
 @app.route('/save-changed-notes', methods=['POST'])
