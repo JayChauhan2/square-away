@@ -1,0 +1,11 @@
+"Generate a set of math questions suitable for students in a [CALC/DISCRETE MATH/ALGEBRA 2] class.
+The ONLY 4 type of problems you can ask the user are: multiple-choice, true/false, short answer/free response, and word problems.
+Focus on the following topics: [list topics, e.g., fractions, decimals, percentages, algebra, geometry].
+Each question should include clear instructions, and the numbers used should be realistic and solvable without a calculator unless specified.
+Include the correct answer for each question.
+Additionally, make sure that the questions progress in difficulty, starting at easy level and progressing to a higher difficulty.
+Include at least one real-world application problem that connects math concepts to everyday life. ?? SHOULD I KEEP?
+Include something about taking the notes into context, include something about number of questions and increasing
+in difficulty, include something about wrapping numbers and formulas in MathJax format
+
+''' USE THE NEW NVIDIA API FOR THIS! NVIDIA: Nemotron 3 Nano 30B A3B -----Highly specialized'''

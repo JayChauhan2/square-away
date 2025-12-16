@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 from werkzeug.utils import secure_filename
 from flask_cors import CORS
 from google import genai
@@ -31,6 +31,35 @@ def clear_folder(folder_path):
             os.remove(file_path)
         elif os.path.isdir(file_path):
             shutil.rmtree(file_path)
+
+def convert_to_latex(text):
+    model_api_key = os.getenv("MISTRAL_API_KEY")
+    response = requests.post(
+    url="https://openrouter.ai/api/v1/chat/completions",
+    headers={
+        "Authorization": f"Bearer {model_api_key}",
+        "Content-Type": "application/json",
+    },
+    data=json.dumps({
+        "model": "mistralai/devstral-2512:free",
+        "messages": [
+        {
+            "role": "user",
+            "content": '''Convert the text below into a LaTeX document.
+                After converting, carefully review the text and correct any mistakes
+                or misread characters. Preserve formatting like bullet points,
+                headings, or mathematical notation where possible.
+                Do not include any other extra text like 'okay here's your message' or something similar. ONLY include the extracted LaTeX output.''' + text
+        }
+        ]
+    })
+    )
+    data = response.json()
+
+    # # Extract the assistant message content
+    llm_output = data["choices"][0]["message"]["content"]
+
+    return llm_output
 
 @app.route('/extract-text', methods=['POST'])
 def extractText():
@@ -88,6 +117,7 @@ def extractText():
                     "After extracting, carefully review the text and correct any mistakes "
                     "or misread characters. Preserve formatting like bullet points, "
                     "headings, or mathematical notation where possible."
+                    " Do not include any other extra text like 'okay here's your message' or something similar. ONLY include the extracted text output."
                 )
             ]
         )
@@ -107,7 +137,86 @@ def extractText():
         "extracted_text": extracted_text
     })
 
+@app.route('/generate-video', methods=['POST'])
+def generate_video():
+    """Generate video from the extracted notes"""
+    try:
+        data = request.json
+        user_text = data.get('text', '')
+        
+        if not user_text:
+            return jsonify({"error": "No text provided"}), 400
+        
+        print("Starting video generation...")
+        
+        # Define expected video path
+        video_path = Path("media/videos/app/1080p60/Explainer.mp4")
+        
+        # Remove old video if it exists
+        if video_path.exists():
+            video_path.unlink()
+            print("Removed old video file")
+        
+        # Generate the video
+        createVideo(user_text)
+        
+        # # Wait for video file to be created (with timeout)
+        # import time
+        # max_wait_time = 600  # 5 minutes timeout
+        # wait_interval = 2  # Check every 2 seconds
+        # elapsed_time = 0
+        
+        # print("Waiting for video file to be created...")
+        # while not video_path.exists() and elapsed_time < max_wait_time:
+        #     time.sleep(wait_interval)
+        #     elapsed_time += wait_interval
+        #     print(f"Waiting... {elapsed_time}s elapsed")
+        
+        # # Check if video was created
+        # if not video_path.exists():
+        #     return jsonify({"error": "Video generation timed out or failed"}), 500
+        
+        # # Additional check: ensure file size is reasonable (not empty/corrupted)
+        # file_size = video_path.stat().st_size
+        # if file_size < 1000:  # Less than 1KB suggests error
+        #     return jsonify({"error": "Generated video file is too small (corrupted)"}), 500
+        '''
+        
+        
+        INSTRUCTIONS: Make the front end wait check every few seconds if there is a file in a certain location (and play spinning wheel while searching)
+        
+        
+        '''
+        # print(f"Video generation completed successfully. File size: {file_size} bytes")
+        return jsonify({
+            "status": "success",
+            "video_path": ".../" + str(video_path)
+        })
+    
+    except Exception as e:
+        print(f"Error in generate-video: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/video', methods=['GET'])
+def get_video():
+    """Serve the generated video file"""
+    video_path = Path("media/videos/generated_manim_script/1080p60/Explainer.mp4")
+    
+    if not video_path.exists():
+        return jsonify({"error": "Video not found"}), 404
+    
+    return send_file(
+        video_path,
+        mimetype='video/mp4',
+        as_attachment=False,
+        download_name='Explainer.mp4'
+    )
+
 def createVideo(user_text_here):
+    with open("./src/assets/video_prompt.txt", "r") as file:
+        content = file.read()
     model_api_key = os.getenv("MISTRAL_API_KEY")
     response = requests.post(
     url="https://openrouter.ai/api/v1/chat/completions",
@@ -120,134 +229,37 @@ def createVideo(user_text_here):
         "messages": [
         {
             "role": "user",
-            "content": f'''
-    You are an AI assistant that generates ONE complete Python script combining:
-
-    (1) Voiceover generation for each step using edge-tts, AND
-    (2) A runnable Manim (v0.17+) animation that uses the generated audio files.
-
-    Before generating code, you MUST first plan out the steps of the video.
-    For each step, give a brief high-level description of what will appear on
-    screen and what the voiceover will summarize.
-
-    For example, a plan for a Rolle's Theorem and Mean Value Theorem video might be:
-
-    <plan>
-    1. Introduction to both theorems and their importance
-    2. Rolle's Theorem – statement and conditions
-    3. Visual demonstration of Rolle's Theorem with graph
-    4. Geometric interpretation of Rolle's Theorem
-    5. Mean Value Theorem – statement and conditions
-    6. Visual demonstration of MVT with graph showing tangent parallel to secant
-    7. Connecting the two theorems – MVT as generalization
-    8. Proof sketch showing the relationship
-    9. Real-world applications
-    10. Summary of key concepts
-    </plan>
-
-    Your output MUST first say the planned steps aloud in natural language.
-    Then, immediately below, output a signal line containing only:
-
-    Manim
-
-    Below that, you MUST generate ONLY the Python code — a single file that contains BOTH:
-    • A block of edge-tts voiceover generators (step1, step2, ...)
-    • A Manim Scene class that uses:
-            self.add_sound("stepX.mp3")
-            self.wait(...)  # placeholder duration
-
-    No explanations or text outside the code block after the "Manim" signal.
-    The video must be under 1 minute in length.
-
-    FULL REQUIREMENTS
-    -----------------
-    1. Parse the provided normal text input into logical steps:
-       - headings
-       - important definitions
-       - explanations
-       - examples
-       - equations (if present in plain text)
-
-    2. For EACH step i:
-    Generate a Python function:
-
-        def make_voiceover_i():
-            TEXT = """<narration text>"""
-            VOICE = "en-GB-SoniaNeural"
-            OUTPUT_FILE = f"step{i}.mp3"
-            SRT_FILE = f"step{i}.srt"
-            RATE = "+25%"
-            ... (full synchronous edge-tts code) ...
-
-    All voiceover functions MUST appear BEFORE the Manim code.
-    • Voiceover text should be high-level summaries that explain the main ideas.
-    • Do not read every equation aloud; the text on screen provides details.
-
-    3. After generating all TTS blocks, generate a Manim Scene:
-
-        class Explainer(Scene):
-            def construct(self):
-                # Step 1 animation
-                <manim animations>
-                self.add_sound("step1.mp3")
-                self.wait(3)
-
-                # Step 2 animation
-                ...
-                self.add_sound("step2.mp3")
-                self.wait(3)
-
-    Animation Requirements:
-    • Use a variety of different colors for text, lines, shapes, and graphs.
-    • Ensure no two Manim elements overlap—adjust positions appropriately.
-    • All elements must be fully visible on screen.
-    • Each step should behave like a mini-scene (use self.clear() if needed).
-    • Use Write(), FadeIn(), Transform(), MathTex(), Tex(), Axes(), Circle(),
-      Line(), Plot(), etc.
-    • Voiceovers must not overlap; ensure sequential playback.
-    • Set edge-tts RATE to +25%.
-
-    4. Everything below the "Manim" signal must be only code in one file.
-
-    5. End the script with:
-
-        if __name__ == "__main__":
-            # generate all voiceovers
-            make_voiceover_1()
-            make_voiceover_2()
-            ...
-            # Manim render instructions as comments:
-            # Run: manim -pqh script.py Explainer
-
-    6. The script must be immediately runnable once pasted.
-
-    Here is the text content the script should explain:
-
-    {user_text_here}
-
-
-    '''
+            "content": content + convert_to_latex(user_text_here)
         }
         ]
     })
     )
     data = response.json()
 
-    # # Extract the assistant message content
+    print("API Response:", json.dumps(data, indent=2))
+
+    if "error" in data:
+        raise ValueError(f"API Error: {data['error']}")
+
+    if "choices" not in data:
+        raise ValueError(f"Unexpected API response format: {data}")
+
     llm_output = data["choices"][0]["message"]["content"]
 
-    # return llm_output
-    # -------------------------------------------------------------
-    # 1. Extract ONLY the code after the "Manim" marker
-    # -------------------------------------------------------------
     if "Manim" not in llm_output:
         raise ValueError("LLM did not return a valid script with 'Manim' marker.")
 
     script_text = llm_output.split("Manim", 1)[1].strip()
 
-    # Remove code fences if present
+    # Remove code fences (``` or ```python)
     if script_text.startswith("```"):
-        script_text = script_text.split("```", 2)[1]
+        # Split by newline after the first ``` line
+        lines = script_text.splitlines()
+        if lines[0].startswith("```"):
+            lines = lines[1:]  # remove opening ```
+        if lines[-1].startswith("```"):
+            lines = lines[:-1]  # remove closing ```
+        script_text = "\n".join(lines).strip()
 
     # -------------------------------------------------------------
     # 2. Use a fixed script name — delete if it already exists
@@ -262,31 +274,13 @@ def createVideo(user_text_here):
     with open(script_path, "w", encoding="utf-8") as f:
         f.write(script_text)
 
-    # -------------------------------------------------------------
-    # 3. Determine path to your existing venv python and manim
-    # -------------------------------------------------------------
     project_root = Path(__file__).parent
-    venv_python = project_root / ".venv" / "bin" / "python"
+    # venv_python = project_root / ".venv" / "bin" / "python"
     venv_manim  = project_root / ".venv" / "bin" / "manim"
-
-    if not venv_python.exists():
-        raise RuntimeError("Could not find .venv/bin/python — ensure venv exists.")
 
     if not venv_manim.exists():
         raise RuntimeError("Manim is not installed inside .venv.")
 
-    # -------------------------------------------------------------
-    # 4. Run the script to generate voiceovers
-    # -------------------------------------------------------------
-    subprocess.run(
-        [str(venv_python), str(script_path)],
-        cwd=project_root,
-        check=True
-    )
-
-    # -------------------------------------------------------------
-    # 5. Run Manim to render the video
-    # -------------------------------------------------------------
     subprocess.run(
         [
             str(venv_manim),
@@ -297,10 +291,11 @@ def createVideo(user_text_here):
         cwd=project_root,
         check=True
     )
+    print("==== Extracted Script Start ====")
+    print(script_text[:200])  # first 200 chars
+    print("==== Extracted Script End ====")
 
-    return llm_output
-
-
+     #return llm_output
 
 
 @app.route('/save-changed-notes', methods=['POST'])

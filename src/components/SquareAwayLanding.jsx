@@ -1,4 +1,5 @@
 import '../index.css';
+import MathJaxWrapper from "./MathJaxWrapper";
 import { useState, useRef, useEffect } from 'react';
 
 function NotesDisplay({ content, onContentChange }) {
@@ -175,11 +176,30 @@ function LoadingSpinner({ message }) {
   );
 }
 
+function VideoPlayer({ videoUrl }) {
+  return (
+    <div className="bg-white rounded-lg shadow-lg p-6 mt-8">
+      <h2 className="text-2xl font-bold text-gray-800 mb-4">Your Generated Video</h2>
+      <div className="bg-black rounded-lg overflow-hidden">
+        <video 
+          controls 
+          className="w-full"
+          src={videoUrl}
+        >
+          Your browser does not support the video tag.
+        </video>
+      </div>
+    </div>
+  );
+}
+
 export default function SquareAwayLanding() {
   const [files, setFiles] = useState([]);
   const [notesContent, setNotesContent] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('');
+  const [isGeneratingVideo, setIsGeneratingVideo] = useState(false);
+  const [videoUrl, setVideoUrl] = useState('');
   const fileInputRef = useRef(null);
 
   const handleFiles = (selectedFiles) => {
@@ -213,8 +233,9 @@ export default function SquareAwayLanding() {
     files.forEach(file => formData.append('images', file));
 
     setIsProcessing(true);
-    setLoadingMessage('Uploading images...');
+    setLoadingMessage('Uploading images and extracting text...');
     setNotesContent('');
+    setVideoUrl('');
 
     try {
       // Upload and extract text
@@ -232,6 +253,9 @@ export default function SquareAwayLanding() {
         setIsProcessing(false);
         setLoadingMessage('');
         
+        // Start video generation
+        generateVideo(result.extracted_text);
+        
       } else {
         alert('Error uploading file');
         setIsProcessing(false);
@@ -243,21 +267,39 @@ export default function SquareAwayLanding() {
     }
   };
 
-  const loadNotesContent = async () => {
+  const generateVideo = async (text) => {
+    setIsGeneratingVideo(true);
+    
     try {
-      const response = await fetch('./results/results.txt');
+      const response = await fetch('http://127.0.0.1:5000/generate-video', {
+        
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text }),
+      });
+      console.log("TRIED RESPONSE")
+      
       if (response.ok) {
-        let text = await response.text();
-        setNotesContent(text);
+
+        console.log("OK RESPONSE")
+        const result = await response.json();
+        console.log('Video generation successful:', result);
+        
+        // Set video URL with timestamp to prevent caching
+        const timestamp = new Date().getTime();
+        setVideoUrl(`http://127.0.0.1:5000/video?t=${timestamp}`);
+        setIsGeneratingVideo(false);
       } else {
-        alert('Could not load notes file. Make sure the file exists in results/');
+        console.log("ERROR IN RESPONSE")
+        alert('Error generating video');
+        setIsGeneratingVideo(false);
       }
     } catch (err) {
-      console.error(err);
-      alert('Error loading notes file');
-    } finally {
-      setIsProcessing(false);
-      setLoadingMessage('');
+      console.error('Error generating video:', err);
+      alert('Error generating video');
+      setIsGeneratingVideo(false);
     }
   };
 
@@ -334,10 +376,21 @@ export default function SquareAwayLanding() {
 
       {notesContent && !isProcessing && (
         <div className="mt-8 w-full max-w-4xl">
-          <NotesDisplay 
-            content={notesContent}
-            onContentChange={handleNotesSave}
-          />
+          <MathJaxWrapper>
+            <NotesDisplay
+              content={notesContent}
+              onContentChange={handleNotesSave}
+            />
+          </MathJaxWrapper>
+          {isGeneratingVideo && (
+            <div className="mt-8">
+              <LoadingSpinner message="Generating your video explanation... This may take a few minutes." />
+            </div>
+          )}
+          
+          {videoUrl && !isGeneratingVideo && (
+            <VideoPlayer videoUrl={videoUrl} />
+          )}
         </div>
       )}
     </div>

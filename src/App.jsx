@@ -1,10 +1,11 @@
 import './App.css'
 import SquareAwayLanding from './components/SquareAwayLanding'
+import Questions from './components/Questions'
 
 function App() {
   return (
     <div className="App">
-      <SquareAwayLanding />
+      <Questions />
     </div>
   )
 }
