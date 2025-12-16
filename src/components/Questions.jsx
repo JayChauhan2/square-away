@@ -1,6 +1,7 @@
 import '../index.css';
 import { useState } from 'react';
 import MathJaxWrapper from "./MathJaxWrapper";
+import Plot from 'react-plotly.js';
 
 const QUESTIONS = [
   {
@@ -100,6 +101,19 @@ export default function Questions() {
           <h2 className="text-xl font-semibold text-gray-800 mb-4">
             {currentQuestion.question}
             {"$$\\sum_{i=0}^n i^2 = \\frac{(n^2+n)(2n+1)}{6}$$"}
+            <Plot
+              data={[
+                {
+                  x: [1, 2, 3],
+                  y: [2, 6, 3],
+                  type: 'scatter',
+                  mode: 'lines+markers',
+                  marker: {color: 'red'},
+                },
+                {type: 'bar', x: [1, 2, 3], y: [2, 5, 3]},
+              ]}
+              layout={ {width: 320, height: 240, title: {text: 'A Fancy Plot'}} }
+            />
           </h2>
 
           {/* MCQ */}
