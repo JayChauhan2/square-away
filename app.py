@@ -32,6 +32,35 @@ def clear_folder(folder_path):
         elif os.path.isdir(file_path):
             shutil.rmtree(file_path)
 
+@app.route('/create-questions')
+def convert_to_latex():
+    with open("./src/assets/video_prompt.txt", "r") as file:
+        content = file.read()
+    model_api_key = os.getenv("MISTRAL_API_KEY")
+    response = requests.post(
+    url="https://openrouter.ai/api/v1/chat/completions",
+    headers={
+        "Authorization": f"Bearer {model_api_key}",
+        "Content-Type": "application/json",
+    },
+    data=json.dumps({
+        "model": "nvidia/nemotron-3-nano-30b-a3b:free",
+        "messages": [
+        {
+            "role": "user",
+            "content": content + "Rolle's Theorem and Mean Value Theorem"
+        }
+        ]
+    })
+    )
+    data = response.json()
+
+    # # Extract the assistant message content
+    llm_output = data["choices"][0]["message"]["content"]
+
+    return llm_output
+
+
 def convert_to_latex(text):
     model_api_key = os.getenv("MISTRAL_API_KEY")
     response = requests.post(
@@ -61,6 +90,36 @@ def convert_to_latex(text):
 
     return llm_output
 
+
+def convert_to_latex(text):
+    model_api_key = os.getenv("MISTRAL_API_KEY")
+    response = requests.post(
+    url="https://openrouter.ai/api/v1/chat/completions",
+    headers={
+        "Authorization": f"Bearer {model_api_key}",
+        "Content-Type": "application/json",
+    },
+    data=json.dumps({
+        "model": "mistralai/devstral-2512:free",
+        "messages": [
+        {
+            "role": "user",
+            "content": '''Convert the text below into a LaTeX document.
+                After converting, carefully review the text and correct any mistakes
+                or misread characters. Preserve formatting like bullet points,
+                headings, or mathematical notation where possible.
+                Do not include any other extra text like 'okay here's your message' or something similar. ONLY include the extracted LaTeX output.''' + text
+        }
+        ]
+    })
+    )
+    data = response.json()
+
+    # # Extract the assistant message content
+    llm_output = data["choices"][0]["message"]["content"]
+
+    return llm_output
+    
 @app.route('/extract-text', methods=['POST'])
 def extractText():
     # 1. Clear uploads and results folders

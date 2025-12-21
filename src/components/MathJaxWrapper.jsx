@@ -1,5 +1,4 @@
 import { useEffect, useRef } from "react";
-
 export default function MathJaxWrapper({ children }) {
   const ref = useRef(null);
 
@@ -9,5 +8,5 @@ export default function MathJaxWrapper({ children }) {
     }
   }, [children]);
 
-  return <div ref={ref}>{children}</div>;
+  return <span ref={ref}>{children}</span>;
 }
