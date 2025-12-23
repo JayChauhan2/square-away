@@ -7,7 +7,8 @@ The questions MUST also increase in difficulty, the first question should be the
 I have created a KaTeXWrapper component that is wrapped around the question element. If any part of a question or the answer choice(s) includes a formula or equations, then format it inline so that it renders properly inside of KaTeX. Note that the sample format below may not always include the proper KaTeX format.
 Ensure that you use inline styling for KaTeX so that the formulas don't awkwardly show up on a new line when they are part of a sentence. Also ensure that the prime symbol (f'(x)) is not messing with the formatting of the document because your response will be directly embedded as an array in JSX.
 REMEMBER that the entire string in the answer choice or the question should not be wrapped in the KaTeX wrapper, only the specific formula or number should be wrapped in the KaTeX wrapper. For example, this is correct: 
-If a question should have an accompanying graph that goes with it, then return it in the format shown along with the questions, the data goes inside of FunctionPlot.
+<>f is continuous on <KaTeXWrapper>{"[a,b]"}</KaTeXWrapper></>
+If a question should have an accompanying graph that goes with it, then return it in the format shown along with the questions, the data goes inside of FunctionPlot. DO NOT USE any variable other than x and y in the graph, for example do not use the variable t in place of x.
 Include the correct answer for each question. The format for doing so is included below.
 You MUST follow the format for returning the answers to the user, you MUST return a JavaScript array containing objects in the format below. 
 DO NOT use any other format and DO NOT output any other information like "Okay here is your answer".
