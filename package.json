@@ -21,7 +21,7 @@
     "react-dom": "^19.2.0",
     "react-mathquill": "^1.0.4",
     "react-plotly.js": "^2.6.0",
-    "react-router-dom": "^7.10.1",
+    "react-router-dom": "^7.11.0",
     "tailwindcss": "^4.1.17",
     "tikz.js": "^0.0.3"
   },

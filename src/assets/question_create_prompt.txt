@@ -8,7 +8,8 @@ I have created a KaTeXWrapper component that is wrapped around the question elem
 Ensure that you use inline styling for KaTeX so that the formulas don't awkwardly show up on a new line when they are part of a sentence. Also ensure that the prime symbol (f'(x)) is not messing with the formatting of the document because your response will be directly embedded as an array in JSX.
 REMEMBER that the entire string in the answer choice or the question should not be wrapped in the KaTeX wrapper, only the specific formula or number should be wrapped in the KaTeX wrapper. For example, this is correct: 
 <>f is continuous on <KaTeXWrapper>{"[a,b]"}</KaTeXWrapper></>
-If a question should have an accompanying graph that goes with it, then return it in the format shown along with the questions, the data goes inside of FunctionPlot. DO NOT USE any variable other than x and y in the graph, for example do not use the variable t in place of x.
+Be MINDFUL of escape characters, for example the proper way to include a fraction would be: {label: <KaTeXWrapper>{"c = \\frac{2}{\\sqrt{3}}"}</KaTeXWrapper>, value: "2/sqrt(3)"},
+If a question should have an accompanying graph(s) that goes with it, then return it in the format shown along with the questions, the data goes inside of FunctionPlot. DO NOT USE any variable other than x and y in the graph, for example do not use the variable t in place of x.
 Include the correct answer for each question. The format for doing so is included below.
 You MUST follow the format for returning the answers to the user, you MUST return a JavaScript array containing objects in the format below. 
 DO NOT use any other format and DO NOT output any other information like "Okay here is your answer".
@@ -23,10 +24,10 @@ The format is below:
       </>
     ),
     options: [
-      <KaTeXWrapper>{"2x"}</KaTeXWrapper>,
-      <KaTeXWrapper>{"x"}</KaTeXWrapper>,
-      <KaTeXWrapper>{"x^2"}</KaTeXWrapper>,
-      <KaTeXWrapper>{"2"}</KaTeXWrapper>
+      {label: <KaTeXWrapper>{"2x"}</KaTeXWrapper>, value: "2x"},
+      {label: <KaTeXWrapper>{"x"}</KaTeXWrapper>, value: "x"},
+      {label: <KaTeXWrapper>{"x^2"}</KaTeXWrapper>, value: "x^2"},
+      {label: <KaTeXWrapper>{"2"}</KaTeXWrapper>, value: "2"}
     ],
     answer: '2x',
     graph: [
@@ -65,6 +66,7 @@ The format is below:
         True/False: The derivative of <KaTeXWrapper>{"\\sin(x)"}</KaTeXWrapper> is equal to <KaTeXWrapper>{"\\cos(x)"}</KaTeXWrapper>.
       </>
     ),
+    options: ["True", "False"],
     answer: 'True',
     graph: [
       {

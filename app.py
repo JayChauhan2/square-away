@@ -219,33 +219,6 @@ def generate_video():
         # Generate the video
         createVideo(user_text)
         
-        # # Wait for video file to be created (with timeout)
-        # import time
-        # max_wait_time = 600  # 5 minutes timeout
-        # wait_interval = 2  # Check every 2 seconds
-        # elapsed_time = 0
-        
-        # print("Waiting for video file to be created...")
-        # while not video_path.exists() and elapsed_time < max_wait_time:
-        #     time.sleep(wait_interval)
-        #     elapsed_time += wait_interval
-        #     print(f"Waiting... {elapsed_time}s elapsed")
-        
-        # # Check if video was created
-        # if not video_path.exists():
-        #     return jsonify({"error": "Video generation timed out or failed"}), 500
-        
-        # # Additional check: ensure file size is reasonable (not empty/corrupted)
-        # file_size = video_path.stat().st_size
-        # if file_size < 1000:  # Less than 1KB suggests error
-        #     return jsonify({"error": "Generated video file is too small (corrupted)"}), 500
-        '''
-        
-        
-        INSTRUCTIONS: Make the front end wait check every few seconds if there is a file in a certain location (and play spinning wheel while searching)
-        
-        
-        '''
         # print(f"Video generation completed successfully. File size: {file_size} bytes")
         return jsonify({
             "status": "success",
