@@ -10,6 +10,7 @@ import json
 import requests
 import mimetypes
 import shutil
+import threading
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -32,36 +33,72 @@ def clear_folder(folder_path):
         elif os.path.isdir(file_path):
             shutil.rmtree(file_path)
 
-@app.route('/create-questions')
-def convert_to_latex():
-    with open("./src/assets/video_prompt.txt", "r") as file:
+@app.route('/create-questions', methods=['POST'])
+def create_questions():
+    # Get topic from request body
+    data = request.get_json()
+    topic = data.get("topic")
+    with open("./src/assets/question_create_prompt.txt", "r") as file:
         content = file.read()
+    
+    #################
+
+    # API_KEY = os.getenv("GOOGLE_API_KEY")
+    # client = genai.Client(api_key=API_KEY)
+    # response = client.models.generate_content(
+    #     model='gemini-2.5-flash',
+    #     contents=[
+    #         (
+    #             content + topic
+    #         )
+    #     ]
+    # )
+    # raw_output = response.text
+
     model_api_key = os.getenv("MISTRAL_API_KEY")
     response = requests.post(
-    url="https://openrouter.ai/api/v1/chat/completions",
-    headers={
-        "Authorization": f"Bearer {model_api_key}",
-        "Content-Type": "application/json",
-    },
-    data=json.dumps({
-        "model": "nvidia/nemotron-3-nano-30b-a3b:free",
-        "messages": [
-        {
-            "role": "user",
-            "content": content + "Rolle's Theorem and Mean Value Theorem"
-        }
-        ]
-    })
+        url="https://openrouter.ai/api/v1/chat/completions",
+        headers={
+            "Authorization": f"Bearer {model_api_key}",
+            "Content-Type": "application/json",
+        },
+        data=json.dumps({
+            "model": "mistralai/devstral-2512:free",
+            "messages": [
+            {
+                "role": "user",
+                "content": content + topic
+            }
+            ]
+        })
     )
     data = response.json()
 
     # # Extract the assistant message content
-    llm_output = data["choices"][0]["message"]["content"]
+    raw_output = data["choices"][0]["message"]["content"]
 
-    return llm_output
+    print("raw_output: " + raw_output)
 
+    lines = raw_output.strip().split("\n")
+    # Remove first and last lines (backticks)
+    lines = raw_output.strip().split("\n")
+    if len(lines) > 2:
+        middle = "\n".join(lines[1:-1])
+    else:
+        middle = raw_output  # fallback if no extra lines
 
-def convert_to_latex(text):
+    # Attempt to parse JSON safely
+    try:
+        questions_json = json.loads(middle)
+    except json.JSONDecodeError as e:
+        print("JSON decode error:", e)
+        return jsonify({"error": "Failed to parse questions JSON", "raw": middle}), 500
+
+    print(middle)
+    # Return JSON directly
+    return jsonify(questions_json)
+
+def generate_title(text):
     model_api_key = os.getenv("MISTRAL_API_KEY")
     response = requests.post(
     url="https://openrouter.ai/api/v1/chat/completions",
@@ -74,11 +111,8 @@ def convert_to_latex(text):
         "messages": [
         {
             "role": "user",
-            "content": '''Convert the text below into a LaTeX document.
-                After converting, carefully review the text and correct any mistakes
-                or misread characters. Preserve formatting like bullet points,
-                headings, or mathematical notation where possible.
-                Do not include any other extra text like 'okay here's your message' or something similar. ONLY include the extracted LaTeX output.''' + text
+            "content": '''Carefully review the text provided and generate a viable TITLE for the topic that the content is on. The content should be 10-12 words MAXIMUM, it can be shorter as needed.
+                Do not include any other extra text like 'okay here's your message' or something similar. ONLY include the title.''' + text
         }
         ]
     })
@@ -89,7 +123,6 @@ def convert_to_latex(text):
     llm_output = data["choices"][0]["message"]["content"]
 
     return llm_output
-
 
 def convert_to_latex(text):
     model_api_key = os.getenv("MISTRAL_API_KEY")
@@ -165,7 +198,7 @@ def extractText():
             image_bytes = f.read()
 
         response = client.models.generate_content(
-            model='gemini-2.5-flash',
+            model='gemini-2.5-flash-lite',
             contents=[
                 types.Part.from_bytes(
                     data=image_bytes,
@@ -189,47 +222,39 @@ def extractText():
 
     print(f"\nAll results saved to {results_file_path}")
     
+    #generate a title and return that too
+    notes_title = generate_title(extracted_text)
+
     # Return the extracted text in the response
     return jsonify({
-        "status": "success", 
-        "results_file": results_file_path,
-        "extracted_text": extracted_text
+        "status": "success",
+        "extracted_text": extracted_text,
+        "notes_title" : notes_title,
     })
 
+def background_video_creation(user_text):
+    try:
+        video_path = Path("media/videos/app/1080p60/Explainer.mp4")
+        # if video_path.exists():
+        #     video_path.unlink()
+        # createVideo(user_text)
+        print("Video generation finished!")
+    except Exception as e:
+        print("Error generating video:", e)
+    
 @app.route('/generate-video', methods=['POST'])
 def generate_video():
-    """Generate video from the extracted notes"""
-    try:
-        data = request.json
-        user_text = data.get('text', '')
-        
-        if not user_text:
-            return jsonify({"error": "No text provided"}), 400
-        
-        print("Starting video generation...")
-        
-        # Define expected video path
-        video_path = Path("media/videos/app/1080p60/Explainer.mp4")
-        
-        # Remove old video if it exists
-        if video_path.exists():
-            video_path.unlink()
-            print("Removed old video file")
-        
-        # Generate the video
-        createVideo(user_text)
-        
-        # print(f"Video generation completed successfully. File size: {file_size} bytes")
-        return jsonify({
-            "status": "success",
-            "video_path": ".../" + str(video_path)
-        })
+    data = request.json
+    user_text = data.get('text', '')
+    if not user_text:
+        return jsonify({"error": "No text provided"}), 400
     
-    except Exception as e:
-        print(f"Error in generate-video: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        return jsonify({"error": str(e)}), 500
+    # Start the video generation in a separate thread
+    thread = threading.Thread(target=background_video_creation, args=(user_text,))
+    thread.start()
+    
+    # Immediately respond to the client
+    return jsonify({"status": "started"})
 
 @app.route('/video', methods=['GET'])
 def get_video():

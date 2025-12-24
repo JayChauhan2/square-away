@@ -1,97 +1,126 @@
 Generate a set of math questions suitable for students in a math class with the topic listed below.
-The ONLY 4 type of problems you can ask the user are: multiple-choice, true/false, short answer/free response, and word problems.
+The ONLY 4 types of problems you can ask the user are: multiple-choice, true/false, short answer/free response, and word problems.
 ONLY ask the user 5 questions. No more, no less.
 The questions MUST be on the topic listed below.
 Each question should include clear instructions, and the numbers used should be realistic and solvable without a calculator unless specified.
-The questions MUST also increase in difficulty, the first question should be the easiest and the last question should be the hardest.
-I have created a KaTeXWrapper component that is wrapped around the question element. If any part of a question or the answer choice(s) includes a formula or equations, then format it inline so that it renders properly inside of KaTeX. Note that the sample format below may not always include the proper KaTeX format.
-Ensure that you use inline styling for KaTeX so that the formulas don't awkwardly show up on a new line when they are part of a sentence. Also ensure that the prime symbol (f'(x)) is not messing with the formatting of the document because your response will be directly embedded as an array in JSX.
-REMEMBER that the entire string in the answer choice or the question should not be wrapped in the KaTeX wrapper, only the specific formula or number should be wrapped in the KaTeX wrapper. For example, this is correct: 
-<>f is continuous on <KaTeXWrapper>{"[a,b]"}</KaTeXWrapper></>
-Be MINDFUL of escape characters, for example the proper way to include a fraction would be: {label: <KaTeXWrapper>{"c = \\frac{2}{\\sqrt{3}}"}</KaTeXWrapper>, value: "2/sqrt(3)"},
-If a question should have an accompanying graph(s) that goes with it, then return it in the format shown along with the questions, the data goes inside of FunctionPlot. DO NOT USE any variable other than x and y in the graph, for example do not use the variable t in place of x.
-Include the correct answer for each question. The format for doing so is included below.
-You MUST follow the format for returning the answers to the user, you MUST return a JavaScript array containing objects in the format below. 
-DO NOT use any other format and DO NOT output any other information like "Okay here is your answer".
-The format is below:
+The questions MUST also increase in difficulty, the first question should be the easiest and the last question the hardest.
+For any part of a question or answer choice that includes a formula, equation, or number that should be rendered with KaTeX, return a JSON array of content blocks. Each block should be an object with:
+- "type": either "text" or "latex"
+- "content": the string content
+
+DO NOT say anything like "okay here is your answer" or something similar, just give the array response.
+
+If a question should have an accompanying graph(s), include a "graphs" array with each graph as an object containing:
+- "type": "function" or "polyline"
+- "fn": the function as a string using only x and y
+- "range" (optional): [min, max] for x-values
+- "color" (optional): string
+- "title" (optional): string
+
+Include the correct answer for each question. For the graphs, DO NOT USE ANY VARIABLES other than x and y, for example using t as a variable will break the graph.
+
+You MUST return a JSON array in the following EXACT format (no ellipses, copy this structure exactly):
 [
   {
-    id: 1,
-    type: 'mcq',
-    question: (
-      <>
-        What is the derivative of <KaTeXWrapper>{"x^2"}</KaTeXWrapper>?
-      </>
-    ),
-    options: [
-      {label: <KaTeXWrapper>{"2x"}</KaTeXWrapper>, value: "2x"},
-      {label: <KaTeXWrapper>{"x"}</KaTeXWrapper>, value: "x"},
-      {label: <KaTeXWrapper>{"x^2"}</KaTeXWrapper>, value: "x^2"},
-      {label: <KaTeXWrapper>{"2"}</KaTeXWrapper>, value: "2"}
+    "id": 1,
+    "type": "mcq",
+    "question": [
+      { "type": "text", "content": "What is the derivative of " },
+      { "type": "latex", "content": "x^2" },
+      { "type": "text", "content": "?" }
     ],
-    answer: '2x',
-    graph: [
+    "options": [
+      [{ "type": "latex", "content": "2x" }],
+      [{ "type": "latex", "content": "x" }],
+      [{ "type": "latex", "content": "x^2" }],
+      [{ "type": "latex", "content": "2" }]
+    ],
+    "answer": [
+      { "type": "latex", "content": "2x" }
+    ],
+    "graphs": [
       {
-        fn: "x^2",
-        graphType: "polyline",
-        color: "blue",
-      },
+        "graphType": "polyline",
+        "fn": "x^2",
+        "color": "blue"
+      }
     ]
   },
   {
-    id: 2,
-    type: 'free',
-    question: 'Explain in one sentence what a derivative represents.',
-    answer: 'The derivative is the instantaneous rate of change of a function.',
-    graph: null
-  },
-  {
-    id: 3,
-    type: 'mcq',
-    question: 'Which rule is used to differentiate a product of two functions?',
-    options: [
-      'Chain Rule',
-      'Product Rule',
-      'Quotient Rule',
-      'Power Rule',
+    "id": 2,
+    "type": "free",
+    "question": [
+      { "type": "text", "content": "Explain in one sentence what a derivative represents." }
     ],
-    answer: 'Product Rule',
-    graph: null
+    "answer": [
+      { "type": "text", "content": "The derivative is the instantaneous rate of change of a function." }
+    ],
+    "graphs": null
   },
   {
-    id: 4,
-    type: 'boolean',
-    question: (
-      <>
-        True/False: The derivative of <KaTeXWrapper>{"\\sin(x)"}</KaTeXWrapper> is equal to <KaTeXWrapper>{"\\cos(x)"}</KaTeXWrapper>.
-      </>
-    ),
-    options: ["True", "False"],
-    answer: 'True',
-    graph: [
+    "id": 3,
+    "type": "mcq",
+    "question": [
+      { "type": "text", "content": "Which rule is used to differentiate a product of two functions?" }
+    ],
+    "options": [
+      [{ "type": "text", "content": "Chain Rule" }],
+      [{ "type": "text", "content": "Product Rule" }],
+      [{ "type": "text", "content": "Quotient Rule" }],
+      [{ "type": "text", "content": "Power Rule" }]
+    ],
+    "answer": [
+      { "type": "text", "content": "Product Rule" }
+    ],
+    "graphs": null
+  },
+  {
+    "id": 4,
+    "type": "boolean",
+    "question": [
+      { "type": "text", "content": "True/False: The derivative of " },
+      { "type": "latex", "content": "\\sin(x)" },
+      { "type": "text", "content": " is equal to " },
+      { "type": "latex", "content": "\\cos(x)" },
+      { "type": "text", "content": "." }
+    ],
+    "options": [
+      [{ "type": "text", "content": "True" }],
+      [{ "type": "text", "content": "False" }]
+    ],
+    "answer": [
+      { "type": "text", "content": "True" }
+    ],
+    "graphs": [
       {
-        fn: "sin(x)",
-        graphType: "polyline",
-        color: "blue",
-      },
+        "graphType": "polyline",
+        "fn": "sin(x)",
+        "color": "blue"
+      }
     ]
   },
   {
-    id: 5,
-    type: 'word',
-    question: (
-      <>
-        A car travels along a straight road such that its position in meters at time <KaTeXWrapper>{"t"}</KaTeXWrapper> seconds is given by <KaTeXWrapper>{"s(t) = 5t^2 + 2t"}</KaTeXWrapper>. How fast is the car moving at <KaTeXWrapper>{"t = 3"}</KaTeXWrapper> seconds?
-      </>
-    ),
-    answer: (
-      <>
-        The velocity is the derivative of position, <KaTeXWrapper>{"v(t) = s'(t) = 10t + 2"}</KaTeXWrapper>. At <KaTeXWrapper>{"t = 3"}</KaTeXWrapper>, <KaTeXWrapper>{"v(3) = 10(3) + 2 = 32 \\text{ m/s}"}</KaTeXWrapper>.
-      </>
-    ),
-    graph: null
-  },
+    "id": 5,
+    "type": "word",
+    "question": [
+      { "type": "text", "content": "A car travels along a straight road such that its position in meters at time " },
+      { "type": "latex", "content": "t" },
+      { "type": "text", "content": " seconds is given by " },
+      { "type": "latex", "content": "s(t) = 5t^2 + 2t" },
+      { "type": "text", "content": ". How fast is the car moving at " },
+      { "type": "latex", "content": "t = 3" },
+      { "type": "text", "content": " seconds?" }
+    ],
+    "answer": [
+      { "type": "text", "content": "The velocity is the derivative of position, " },
+      { "type": "latex", "content": "v(t) = s'(t) = 10t + 2" },
+      { "type": "text", "content": ". At " },
+      { "type": "latex", "content": "t = 3" },
+      { "type": "text", "content": ", " },
+      { "type": "latex", "content": "v(3) = 10(3) + 2 = 32 \\text{ m/s}" }
+    ],
+    "graphs": null
+  }
 ]
-
 
 The questions MUST be on the topic below:

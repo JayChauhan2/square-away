@@ -12,7 +12,7 @@ function App() {
       
       <Routes>
         <Route path="/" element={<SquareAwayLanding />} />
-        <Route path="/questions" element={<Questions />} />
+        <Route path="/questions/:topic" element={<Questions />} />
       </Routes>
     </div>
   )

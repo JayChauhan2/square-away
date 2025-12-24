@@ -1,6 +1,7 @@
 import '../index.css';
 import MathJaxWrapper from "./MathJaxWrapper";
 import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 function NotesDisplay({ content, onContentChange }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -179,7 +180,7 @@ function LoadingSpinner({ message }) {
 function VideoPlayer({ videoUrl }) {
   return (
     <div className="bg-white rounded-lg shadow-lg p-6 mt-8">
-      <h2 className="text-2xl font-bold text-gray-800 mb-4">Your Generated Video</h2>
+      <h2 className="text-2xl font-bold text-gray-800 mb-4">Video Explanation</h2>
       <div className="bg-black rounded-lg overflow-hidden">
         <video 
           controls 
@@ -196,11 +197,31 @@ function VideoPlayer({ videoUrl }) {
 export default function SquareAwayLanding() {
   const [files, setFiles] = useState([]);
   const [notesContent, setNotesContent] = useState('');
+  const [notesTitle, setNotesTitle] = useState(''); // <-- make it state
   const [isProcessing, setIsProcessing] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('');
   const [isGeneratingVideo, setIsGeneratingVideo] = useState(false);
   const [videoUrl, setVideoUrl] = useState('');
   const fileInputRef = useRef(null);
+  const navigate = useNavigate(); // <-- hook to navigate
+
+  const practiceMessages = [
+    "Ready to test your understanding?",
+    "Let's see how well you know this!",
+    "Time to check your knowledge!",
+    "Think you've got this? Let's find out!",
+    "Up for a challenge?",
+    "Can you handle this question?",
+    "Let's test what you've learned!",
+    "Are you prepared to answer?",
+    "Time for a quick knowledge check!",
+    "Ready for a brain workout?",
+    "How sharp is your mind today?",
+    "Let's see your skills in action!",
+    "Are you up for a quiz?",
+    "Put your knowledge to the test!",
+    "Think fast! Here's your challenge!"
+  ]
 
   const handleFiles = (selectedFiles) => {
     const imageFiles = Array.from(selectedFiles).filter(file =>
@@ -250,9 +271,9 @@ export default function SquareAwayLanding() {
         
         // Use the extracted text directly from the API response
         setNotesContent(result.extracted_text);
+        setNotesTitle(result.notes_title);
         setIsProcessing(false);
         setLoadingMessage('');
-        
         // Start video generation
         generateVideo(result.extracted_text);
         
@@ -267,38 +288,46 @@ export default function SquareAwayLanding() {
     }
   };
 
-  const generateVideo = async (text) => {
-    setIsGeneratingVideo(true);
+  const pollVideo = async () => {
+    const timestamp = new Date().getTime();
+    const videoCheckUrl = `http://127.0.0.1:5000/video?t=${timestamp}`;
     
     try {
-      const response = await fetch('http://127.0.0.1:5000/generate-video', {
-        
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ text }),
-      });
-      console.log("TRIED RESPONSE")
-      
+      const response = await fetch(videoCheckUrl, { method: 'HEAD' });
       if (response.ok) {
-
-        console.log("OK RESPONSE")
-        const result = await response.json();
-        console.log('Video generation successful:', result);
-        
-        // Set video URL with timestamp to prevent caching
-        const timestamp = new Date().getTime();
-        setVideoUrl(`http://127.0.0.1:5000/video?t=${timestamp}`);
+        // Video exists
+        setVideoUrl(videoCheckUrl);
         setIsGeneratingVideo(false);
       } else {
-        console.log("ERROR IN RESPONSE")
-        alert('Error generating video');
+        // Not ready yet, try again in 3 seconds
+        setTimeout(pollVideo, 3000);
+      }
+    } catch (err) {
+      setTimeout(pollVideo, 3000);
+    }
+  };
+
+  const generateVideo = async (text) => {
+    setIsGeneratingVideo(true);
+    try {
+      const response = await fetch('http://127.0.0.1:5000/generate-video', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.status === 'started') {
+          console.log("Video generation started!");
+          pollVideo(); // start polling
+        }
+      } else {
+        alert('Error starting video generation');
         setIsGeneratingVideo(false);
       }
     } catch (err) {
-      console.error('Error generating video:', err);
-      alert('Error generating video');
+      console.error(err);
       setIsGeneratingVideo(false);
     }
   };
@@ -326,6 +355,12 @@ export default function SquareAwayLanding() {
       console.error('Error saving notes:', err);
       alert('Error saving notes');
     }
+  };
+
+  const handlePractice = () => {
+    if (!notesTitle) return;
+    const sanitizedTitle = encodeURIComponent("Rolle's Theorem and Mean Value Theorem"); // make it URL-safe const sanitizedTitle = encodeURIComponent(notesTitle);
+    navigate(`/questions/${sanitizedTitle}`);
   };
 
   return (
@@ -374,6 +409,35 @@ export default function SquareAwayLanding() {
 
       {isProcessing && <LoadingSpinner message={loadingMessage} />}
 
+      <div className="mt-8 w-full max-w-4xl">
+          <MathJaxWrapper>
+            <NotesDisplay
+              content={notesContent}
+              onContentChange={handleNotesSave}
+            />
+          </MathJaxWrapper>
+          {isGeneratingVideo && (
+            <div className="mt-8">
+              <LoadingSpinner message="Generating your video explanation... This may take a few minutes." />
+            </div>
+          )}
+          
+            <VideoPlayer videoUrl={videoUrl} />
+          {/* QUESTIONS BUTTON CARD */}
+          <div className="bg-white rounded-lg shadow-lg p-6 mt-8 flex flex-col items-center">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">Practice Questions</h2>
+            <p className="text-gray-700 mb-4 text-center">
+              {practiceMessages[Math.floor(Math.random() * practiceMessages.length)]} Go to the questions page for this topic.
+            </p>
+            <button
+              onClick={handlePractice}
+              className="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-semibold"
+            >
+              Go to Questions
+            </button>
+          </div>
+        </div>
+
       {notesContent && !isProcessing && (
         <div className="mt-8 w-full max-w-4xl">
           <MathJaxWrapper>
@@ -391,6 +455,19 @@ export default function SquareAwayLanding() {
           {videoUrl && !isGeneratingVideo && (
             <VideoPlayer videoUrl={videoUrl} />
           )}
+          {/* QUESTIONS BUTTON CARD */}
+          <div className="bg-white rounded-lg shadow-lg p-6 mt-8 flex flex-col items-center">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">Practice Questions</h2>
+            <p className="text-gray-700 mb-4 text-center">
+              {practiceMessages[Math.floor(Math.random() * practiceMessages.length)]} Go to the questions page for this topic.
+            </p>
+            <button
+              onClick={handlePractice}
+              className="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-semibold"
+            >
+              Go to Questions
+            </button>
+          </div>
         </div>
       )}
     </div>

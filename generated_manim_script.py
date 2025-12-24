@@ -3,170 +3,83 @@ from manim import *
 class Explainer(Scene):
     def construct(self):
         # Step 1: Introduction
-        title = Tex("Rolle's Theorem \& Mean Value Theorem", color=BLUE)
+        title = Tex("Chain Rule and Applications", color=BLUE)
+        intro = Tex("A fundamental rule for differentiating composite functions", color=YELLOW)
+        intro.next_to(title, DOWN)
         self.play(Write(title))
         self.wait(1)
-        self.play(FadeOut(title))
-
-        # Step 2: Rolle's Theorem Statement
-        rolles_title = Tex("Rolle's Theorem", color=GREEN)
-        rolles_conditions = MathTex(
-            "f \\text{ continuous on } [a,b]",
-            "f \\text{ differentiable on } (a,b)",
-            "f(a) = f(b)",
-            color=YELLOW
-        )
-        rolles_conclusion = MathTex(
-            "\\exists c \\in (a,b) \\text{ where } f'(c) = 0",
-            color=RED
-        )
-
-        rolles_title.to_edge(UP)
-        rolles_conditions.arrange(DOWN, aligned_edge=LEFT, buff=0.3).next_to(rolles_title, DOWN)
-        rolles_conclusion.next_to(rolles_conditions, DOWN, buff=0.5)
-
-        self.play(Write(rolles_title))
-        self.wait(0.5)
-        self.play(Write(rolles_conditions))
-        self.wait(1)
-        self.play(Write(rolles_conclusion))
+        self.play(Write(intro))
         self.wait(2)
-        self.play(FadeOut(rolles_title), FadeOut(rolles_conditions), FadeOut(rolles_conclusion))
+        self.clear()
 
-        # Step 3: Rolle's Theorem Example
-        example_title = Tex("Example: ", "$F(x) = x^2 - 3x + 2$", color=PURPLE)
-        axes = Axes(
-            x_range=[0, 3, 1],
-            y_range=[-1, 2, 1],
-            axis_config={"color": WHITE},
-        )
-        axes_labels = axes.get_axis_labels(x_label="x", y_label="f(x)")
-
-        graph = axes.plot(lambda x: x**2 - 3*x + 2, color=BLUE)
-        intercepts = [
-            Dot(axes.c2p(1, 0), color=RED),
-            Dot(axes.c2p(2, 0), color=RED)
-        ]
-        intercept_labels = [
-            MathTex("x=1").next_to(intercepts[0], DOWN),
-            MathTex("x=2").next_to(intercepts[1], DOWN)
-        ]
-
-        derivative = MathTex(
-            "f'(x) = 2x - 3",
-            "f'\\left(\\frac{3}{2}\\right) = 0",
-            color=GREEN
-        ).to_edge(DOWN)
-
-        self.play(Write(example_title))
-        self.wait(1)
-        self.play(Create(axes), Write(axes_labels))
-        self.play(Create(graph))
-        self.wait(1)
-        self.play(FadeIn(intercepts[0]), FadeIn(intercepts[1]))
-        self.play(Write(intercept_labels[0]), Write(intercept_labels[1]))
-        self.wait(1)
-        self.play(Write(derivative))
+        # Step 2: Example 1
+        example1_title = Tex("Example 1:", color=GREEN)
+        example1_eq = MathTex("y = \\sqrt[7]{\\log \\left(\\frac{1}{x}\\right)}", color=RED)
+        example1_eq.next_to(example1_title, DOWN)
+        self.play(Write(example1_title))
+        self.play(Write(example1_eq))
         self.wait(2)
-        self.play(FadeOut(example_title), FadeOut(axes), FadeOut(axes_labels),
-                  FadeOut(graph), *[FadeOut(dot) for dot in intercepts],
-                  *[FadeOut(label) for label in intercept_labels], FadeOut(derivative))
 
-        # Step 4: Mean Value Theorem Statement
-        mvt_title = Tex("Mean Value Theorem", color=ORANGE)
-        mvt_conditions = MathTex(
-            "f \\text{ continuous on } [a,b]",
-            "f \\text{ differentiable on } (a,b)",
-            color=YELLOW
-        )
-        mvt_conclusion = MathTex(
-            "\\exists c \\in (a,b) \\text{ where }",
-            "f'(c) = \\frac{f(b) - f(a)}{b - a}",
-            color=RED
-        )
-        mvt_note = Tex("'mean' = average rate of change", color=PINK).scale(0.7)
-
-        mvt_title.to_edge(UP)
-        mvt_conditions.arrange(DOWN, aligned_edge=LEFT, buff=0.3).next_to(mvt_title, DOWN)
-        mvt_conclusion.next_to(mvt_conditions, DOWN, buff=0.5)
-        mvt_note.next_to(mvt_conclusion, DOWN, buff=0.3)
-
-        self.play(Write(mvt_title))
-        self.wait(0.5)
-        self.play(Write(mvt_conditions))
-        self.wait(1)
-        self.play(Write(mvt_conclusion))
-        self.wait(1)
-        self.play(Write(mvt_note))
+        # Step 3: Differentiation steps for Example 1
+        step1 = MathTex("\\frac{dy}{dx} = \\frac{1}{7} \\left(\\log \\left(\\frac{1}{x}\\right)\\right)^{-\\frac{6}{7}} \\frac{d}{dx} \\log \\left(\\frac{1}{x}\\right)", color=PURPLE)
+        step1.next_to(example1_eq, DOWN)
+        self.play(Write(step1))
         self.wait(2)
-        self.play(FadeOut(mvt_title), FadeOut(mvt_conditions),
-                  FadeOut(mvt_conclusion), FadeOut(mvt_note))
 
-        # Step 5: Mean Value Theorem Example
-        example_title2 = Tex("Example: ", "$f(x) = \\sin x$", " on ", "$[0, \\pi]$", color=TEAL)
-        axes2 = Axes(
-            x_range=[0, PI, PI/4],
-            y_range=[-1, 1, 1],
-            axis_config={"color": WHITE},
-        )
-        axes2_labels = axes2.get_axis_labels(x_label="x", y_label="f(x)")
-
-        sin_graph = axes2.plot(lambda x: np.sin(x), color=GREEN)
-        secant_line = axes2.get_secant_slope_group(
-            x=0, graph=sin_graph, dx=PI,
-            secant_line_color=RED, secant_line_length=5
-        )
-        c_dot = Dot(axes2.c2p(PI/2, 0), color=YELLOW)
-        c_label = MathTex("c = \\frac{\\pi}{2}").next_to(c_dot, UP)
-
-        derivative2 = MathTex(
-            "f'(c) = \\frac{\\sin(\\pi) - \\sin(0)}{\\pi - 0} = 0",
-            "f'(x) = \\cos x = 0 \\text{ at } x = \\frac{\\pi}{2}",
-            color=PURPLE
-        ).to_edge(DOWN)
-
-        self.play(Write(example_title2))
-        self.wait(1)
-        self.play(Create(axes2), Write(axes2_labels))
-        self.play(Create(sin_graph))
-        self.wait(1)
-        self.play(Create(secant_line))
-        self.wait(1)
-        self.play(FadeIn(c_dot), Write(c_label))
-        self.wait(1)
-        self.play(Write(derivative2))
+        step2 = MathTex("= -\\frac{1}{7} \\left(\\log \\left(\\frac{1}{x}\\right)\\right)^{-\\frac{6}{7}} \\frac{d}{dx} \\log x", color=ORANGE)
+        step2.next_to(step1, DOWN)
+        self.play(Write(step2))
         self.wait(2)
-        self.play(FadeOut(example_title2), FadeOut(axes2), FadeOut(axes2_labels),
-                  FadeOut(sin_graph), FadeOut(secant_line), FadeOut(c_dot),
-                  FadeOut(c_label), FadeOut(derivative2))
 
-        # Step 6: Comparison
-        comparison = VGroup(
-            Tex("Rolle's Theorem:", color=GREEN),
-            MathTex("f(a) = f(b) \\Rightarrow f'(c) = 0", color=GREEN),
-            Tex("Mean Value Theorem:", color=ORANGE),
-            MathTex("f'(c) = \\frac{f(b) - f(a)}{b - a}", color=ORANGE)
-        ).arrange(DOWN, aligned_edge=LEFT, buff=0.5)
-
-        self.play(Write(comparison))
+        step3 = MathTex("= -\\frac{1}{7} \\left(\\log \\left(\\frac{1}{x}\\right)\\right)^{-\\frac{6}{7}} \\frac{1}{x}", color=TEAL)
+        step3.next_to(step2, DOWN)
+        self.play(Write(step3))
         self.wait(2)
-        self.play(FadeOut(comparison))
 
-        # Step 7: Conclusion
-        conclusion = Tex("Key Takeaways:", color=BLUE)
+        # Step 4: Final derivative for Example 1
+        final1 = MathTex("\\frac{dy}{dx} = - \\frac{1}{7x \\left(\\log \\left(\\frac{1}{x}\\right)\\right)^{\\frac{6}{7}}}", color=GOLD)
+        final1.next_to(step3, DOWN)
+        self.play(Write(final1))
+        self.wait(2)
+        self.clear()
+
+        # Step 5: Example 2
+        example2_title = Tex("Example 2:", color=GREEN)
+        example2_eq = MathTex("y = \\sin^4 x + \\sin(x^4) + \\sin 4x + x^4", color=RED)
+        example2_eq.next_to(example2_title, DOWN)
+        self.play(Write(example2_title))
+        self.play(Write(example2_eq))
+        self.wait(2)
+
+        # Step 6: Differentiation steps for Example 2
+        step1_2 = MathTex("\\frac{dy}{dx} = 4 \\sin^3 x \\frac{d}{dx} (\\sin x) + \\cos(x^4) \\frac{d}{dx} (x^4) + 4 \\cos 4x + 4x^3", color=PURPLE)
+        step1_2.next_to(example2_eq, DOWN)
+        self.play(Write(step1_2))
+        self.wait(2)
+
+        step2_2 = MathTex("= 4 \\sin^3 x \\cos x + \\cos(x^4) (4x^3) + 4 \\cos 4x + 4x^3", color=ORANGE)
+        step2_2.next_to(step1_2, DOWN)
+        self.play(Write(step2_2))
+        self.wait(2)
+
+        # Step 7: Final derivative for Example 2
+        final2 = MathTex("= 4 \\cos x \\sin^3 x + 4x^3 \\cos(x^4) + 4 \\cos 4x + 4x^3", color=GOLD)
+        final2.next_to(step2_2, DOWN)
+        self.play(Write(final2))
+        self.wait(2)
+        self.clear()
+
+        # Step 8: Summary
+        summary = Tex("Chain Rule Applications", color=BLUE)
+        summary.to_edge(UP)
         points = VGroup(
-            Tex("1. Both require continuity and differentiability", color=YELLOW),
-            Tex("2. Rolle's is a special case of MVT", color=RED),
-            Tex("3. MVT connects local and global behavior", color=PURPLE)
-        ).arrange(DOWN, aligned_edge=LEFT, buff=0.3)
-
-        conclusion.to_edge(UP)
-        points.next_to(conclusion, DOWN)
-
-        self.play(Write(conclusion))
-        self.wait(0.5)
+            Tex("1. Differentiate composite functions", color=YELLOW),
+            Tex("2. Break down complex derivatives step-by-step", color=YELLOW),
+            Tex("3. Essential for calculus and real-world applications", color=YELLOW)
+        )
+        points.arrange(DOWN, aligned_edge=LEFT)
+        self.play(Write(summary))
         self.play(Write(points))
         self.wait(3)
-        self.play(FadeOut(conclusion), FadeOut(points))
 
-        self.wait(1)
+        self.wait(1)  # Total duration placeholder
