@@ -205,11 +205,10 @@ def extractText():
                     mime_type=mime_type,
                 ),
                 (
-                    "Extract all the text from this image and return it as plain text. "
+                    "Extract all the text from this image and "
                     "After extracting, carefully review the text and correct any mistakes "
-                    "or misread characters. Preserve formatting like bullet points, "
-                    "headings, or mathematical notation where possible."
-                    " Do not include any other extra text like 'okay here's your message' or something similar. ONLY include the extracted text output."
+                    "or misread characters. THEN, CONVERT the text into a neatly formatted notes with logical understanding."
+                    " Do not include any other extra text like 'okay here's your message' or something similar. ONLY include the neatly formatted output."
                 )
             ]
         )
@@ -235,9 +234,9 @@ def extractText():
 def background_video_creation(user_text):
     try:
         video_path = Path("media/videos/app/1080p60/Explainer.mp4")
-        # if video_path.exists():
-        #     video_path.unlink()
-        # createVideo(user_text)
+        if video_path.exists():
+            video_path.unlink()
+        createVideo(user_text)
         print("Video generation finished!")
     except Exception as e:
         print("Error generating video:", e)

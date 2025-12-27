@@ -1,19 +1,24 @@
-CHAIN RULE AND APPLICATIONS
+**Chain Rule and Applications**
 
-④ $y = \sqrt[7]{\log(\frac{1}{x})}$
+**Problem 4:**
+$y = \sqrt[7]{\log(\frac{1}{x})}$
 
-$\Rightarrow \frac{dy}{dx} = \frac{1}{7}(\log(\frac{1}{x}))^{\frac{-6}{7}} \frac{d}{dx} \log(\frac{1}{x})$
+**Solution:**
 
-$= -\frac{1}{7}(\log(\frac{1}{x}))^{\frac{-6}{7}} \frac{7}{dx} \log x$
+Applying the chain rule:
+$\frac{dy}{dx} = \frac{1}{7} \left(\log(\frac{1}{x})\right)^{\frac{1}{7}-1} \cdot \frac{d}{dx} \left(\log(\frac{1}{x})\right)$
+$\frac{dy}{dx} = \frac{1}{7} \left(\log(\frac{1}{x})\right)^{-\frac{6}{7}} \cdot \frac{d}{dx} \left(\log(x^{-1})\right)$
+$\frac{dy}{dx} = \frac{1}{7} \left(\log(\frac{1}{x})\right)^{-\frac{6}{7}} \cdot \frac{d}{dx} (-\log x)$
+$\frac{dy}{dx} = -\frac{1}{7} \left(\log(\frac{1}{x})\right)^{-\frac{6}{7}} \cdot \frac{1}{x}$
+$\frac{dy}{dx} = -\frac{1}{7x \left(\log(\frac{1}{x})\right)^{\frac{6}{7}}}$
 
-$= -\frac{1}{7}(\log(\frac{1}{x}))^{\frac{-6}{7}} \frac{1}{x}$
+**Problem (Implicit Differentiation):**
+$y = \sin^4x + \sin(x^4) + \sin 4x + x^4$
 
-$\frac{dy}{dx} = \frac{-1}{7x(\log(\frac{1}{x}))^{\frac{6}{7}}}$
+**Solution:**
 
-$y = \sin^{4}x + \sin(x^4) + \sin 4x + x^4$.
-
-$\frac{dy}{dx} = 4\sin^{3}x \frac{d}{dx}(\sin x) + \cos x^{4} \frac{d}{dx}(x^{4}) + 4 \cos 4x + 4x^{3}$
-
-$= 4\sin^{3}x \cos x + \cos x^{4}(4x^{3}) + 4 \cos 4x + 4x^{3}$
-
-$= 4\cos x \sin^{3}x + 4x^{3}\cos x^{4} + 4\cos 4x + 4x^{3}$
+Applying the chain rule and power rule for differentiation:
+$\frac{dy}{dx} = \frac{d}{dx}(\sin^4x) + \frac{d}{dx}(\sin(x^4)) + \frac{d}{dx}(\sin 4x) + \frac{d}{dx}(x^4)$
+$\frac{dy}{dx} = 4\sin^3x \cdot \frac{d}{dx}(\sin x) + \cos(x^4) \cdot \frac{d}{dx}(x^4) + \cos(4x) \cdot \frac{d}{dx}(4x) + 4x^3$
+$\frac{dy}{dx} = 4\sin^3x \cdot \cos x + \cos(x^4) \cdot (4x^3) + \cos(4x) \cdot 4 + 4x^3$
+$\frac{dy}{dx} = 4\cos x \sin^3x + 4x^3\cos(x^4) + 4\cos(4x) + 4x^3$

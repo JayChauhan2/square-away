@@ -409,35 +409,6 @@ export default function SquareAwayLanding() {
 
       {isProcessing && <LoadingSpinner message={loadingMessage} />}
 
-      <div className="mt-8 w-full max-w-4xl">
-          <MathJaxWrapper>
-            <NotesDisplay
-              content={notesContent}
-              onContentChange={handleNotesSave}
-            />
-          </MathJaxWrapper>
-          {isGeneratingVideo && (
-            <div className="mt-8">
-              <LoadingSpinner message="Generating your video explanation... This may take a few minutes." />
-            </div>
-          )}
-          
-            <VideoPlayer videoUrl={videoUrl} />
-          {/* QUESTIONS BUTTON CARD */}
-          <div className="bg-white rounded-lg shadow-lg p-6 mt-8 flex flex-col items-center">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Practice Questions</h2>
-            <p className="text-gray-700 mb-4 text-center">
-              {practiceMessages[Math.floor(Math.random() * practiceMessages.length)]} Go to the questions page for this topic.
-            </p>
-            <button
-              onClick={handlePractice}
-              className="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-semibold"
-            >
-              Go to Questions
-            </button>
-          </div>
-        </div>
-
       {notesContent && !isProcessing && (
         <div className="mt-8 w-full max-w-4xl">
           <MathJaxWrapper>
