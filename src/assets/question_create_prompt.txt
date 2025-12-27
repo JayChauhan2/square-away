@@ -10,14 +10,48 @@ For any part of a question or answer choice that includes a formula, equation, o
 
 DO NOT say anything like "okay here is your answer" or something similar, just give the array response.
 
-If a question should have an accompanying graph(s), include a "graphs" array with each graph as an object containing:
-- "type": "function" or "polyline"
-- "fn": the function as a string using only x and y
-- "range" (optional): [min, max] for x-values
-- "color" (optional): string
-- "title" (optional): string
+--------------------------------------------------
+GRAPH REQUIREMENTS (VERY IMPORTANT)
+--------------------------------------------------
 
-Include the correct answer for each question. For the graphs, DO NOT USE ANY VARIABLES other than x and y, for example using t as a variable will break the graph.
+If a question should include a graph, include a "graphs" array.
+Each graph MUST be an object with the following rules:
+
+Allowed equation types:
+- "function"
+- "parametric"
+- "implicit"
+
+Each graph object may contain:
+- "equationType"
+- "expr1"
+- "expr2" (ONLY for parametric graphs)
+- "range": [min, max]
+- "width"
+- "height"
+- "title"
+
+STRICT RULES FOR EXPRESSIONS (DO NOT VIOLATE):
+
+1. ALL expressions MUST be valid JavaScript.
+2. DO NOT use the caret symbol (^) for powers.
+   - Use x*x instead of x^2
+   - Use Math.pow(x, 2) if needed
+3. DO NOT use "=" inside expressions.
+4. IMPLICIT equations MUST be written in the form:
+   f(x, y) = 0
+   Example:
+   - Correct: "x*x + y*y - 1"
+   - Incorrect: "x^2 + y^2 = 1"
+5. Allowed variables ONLY:
+   - Function graphs: use ONLY "x"
+   - Parametric graphs: use ONLY "t"
+   - Implicit graphs: use ONLY "x" and "y"
+6. Trigonometric functions MUST use JavaScript syntax:
+   - Math.sin(x), Math.cos(x), Math.tan(x)
+7. Do NOT introduce any other variable names.
+
+Include the correct answer for each question.
 
 You MUST return a JSON array in the following EXACT format (no ellipses, copy this structure exactly):
 [
@@ -40,9 +74,11 @@ You MUST return a JSON array in the following EXACT format (no ellipses, copy th
     ],
     "graphs": [
       {
-        "graphType": "polyline",
-        "fn": "x^2",
-        "color": "blue"
+        "equationType": "function",
+        "expr1": "x*x",
+        "range": [-10, 10],
+        "width": 300,
+        "height": 200
       }
     ]
   },
@@ -93,9 +129,11 @@ You MUST return a JSON array in the following EXACT format (no ellipses, copy th
     ],
     "graphs": [
       {
-        "graphType": "polyline",
-        "fn": "sin(x)",
-        "color": "blue"
+        "equationType": "function",
+        "expr1": "Math.sin(x)",
+        "range": [-10, 10],
+        "width": 300,
+        "height": 200
       }
     ]
   },

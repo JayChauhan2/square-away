@@ -33,6 +33,60 @@ def clear_folder(folder_path):
         elif os.path.isdir(file_path):
             shutil.rmtree(file_path)
 
+
+@app.route('/chatbot', methods=['POST'])
+def chatbot():
+    """
+    Receives:
+      - notes: The converted notes text
+      - user_message: The user's question
+      - chat_history: optional list of previous messages [{role, content}]
+    Returns:
+      - chatbot response
+    """
+    data = request.json
+    notes = data.get("notes", "")
+    user_message = data.get("user_message", "")
+    chat_history = data.get("chat_history", [])
+
+    if not user_message:
+        return jsonify({"error": "No message provided"}), 400
+
+    # Build conversation
+    conversation = [{"role": "system", "content": (
+        "You are a helpful study assistant. "
+        "Keep your answers concise for chat display, "
+        "wrap all formulas in LaTeX (use $...$ for inline math), "
+        "and do not write huge paragraphs."
+    )}]
+    
+    # Add previous chat messages if any
+    conversation.extend(chat_history)
+    
+    # Add current user message
+    conversation.append({"role": "user", "content": f"{user_message}\n\nNotes:\n{notes}"})
+
+    model_api_key = os.getenv("MISTRAL_API_KEY")
+    response = requests.post(
+        url="https://openrouter.ai/api/v1/chat/completions",
+        headers={
+            "Authorization": f"Bearer {model_api_key}",
+            "Content-Type": "application/json",
+        },
+        data=json.dumps({
+            "model": "mistralai/devstral-2512:free",
+            "messages": conversation
+        })
+    )
+    if response.status_code != 200:
+        return jsonify({"error": "Chatbot API failed"}), 500
+
+    data = response.json()
+    answer = data["choices"][0]["message"]["content"]
+
+    return jsonify({"answer": answer})
+
+
 @app.route('/create-questions', methods=['POST'])
 def create_questions():
     # Get topic from request body
@@ -198,7 +252,7 @@ def extractText():
             image_bytes = f.read()
 
         response = client.models.generate_content(
-            model='gemini-2.5-flash-lite',
+            model='gemini-2.5-flash',
             contents=[
                 types.Part.from_bytes(
                     data=image_bytes,

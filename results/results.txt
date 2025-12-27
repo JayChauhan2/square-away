@@ -1,24 +1,63 @@
-**Chain Rule and Applications**
+# CHAIN RULE AND APPLICATIONS
 
-**Problem 4:**
-$y = \sqrt[7]{\log(\frac{1}{x})}$
+## Problem 1
 
-**Solution:**
-
-Applying the chain rule:
-$\frac{dy}{dx} = \frac{1}{7} \left(\log(\frac{1}{x})\right)^{\frac{1}{7}-1} \cdot \frac{d}{dx} \left(\log(\frac{1}{x})\right)$
-$\frac{dy}{dx} = \frac{1}{7} \left(\log(\frac{1}{x})\right)^{-\frac{6}{7}} \cdot \frac{d}{dx} \left(\log(x^{-1})\right)$
-$\frac{dy}{dx} = \frac{1}{7} \left(\log(\frac{1}{x})\right)^{-\frac{6}{7}} \cdot \frac{d}{dx} (-\log x)$
-$\frac{dy}{dx} = -\frac{1}{7} \left(\log(\frac{1}{x})\right)^{-\frac{6}{7}} \cdot \frac{1}{x}$
-$\frac{dy}{dx} = -\frac{1}{7x \left(\log(\frac{1}{x})\right)^{\frac{6}{7}}}$
-
-**Problem (Implicit Differentiation):**
-$y = \sin^4x + \sin(x^4) + \sin 4x + x^4$
+**Original Function:**
+$y = \sqrt[7]{\log\left(\frac{1}{x}\right)}$
 
 **Solution:**
 
-Applying the chain rule and power rule for differentiation:
-$\frac{dy}{dx} = \frac{d}{dx}(\sin^4x) + \frac{d}{dx}(\sin(x^4)) + \frac{d}{dx}(\sin 4x) + \frac{d}{dx}(x^4)$
-$\frac{dy}{dx} = 4\sin^3x \cdot \frac{d}{dx}(\sin x) + \cos(x^4) \cdot \frac{d}{dx}(x^4) + \cos(4x) \cdot \frac{d}{dx}(4x) + 4x^3$
-$\frac{dy}{dx} = 4\sin^3x \cdot \cos x + \cos(x^4) \cdot (4x^3) + \cos(4x) \cdot 4 + 4x^3$
-$\frac{dy}{dx} = 4\cos x \sin^3x + 4x^3\cos(x^4) + 4\cos(4x) + 4x^3$
+1.  **Rewrite the function using exponent notation and logarithm properties:**
+    Given $y = \sqrt[7]{\log\left(\frac{1}{x}\right)}$.
+    We can write this as $y = \left(\log\left(x^{-1}\right)\right)^{\frac{1}{7}}$.
+    Using the logarithm property $\log(a^b) = b \log(a)$ and assuming $\log$ refers to the natural logarithm ($\ln$), we have:
+    $y = (-\log x)^{\frac{1}{7}}$
+
+2.  **Apply the Chain Rule:**
+    The chain rule states that if $y = f(u)$ and $u = g(x)$, then $\frac{dy}{dx} = \frac{dy}{du} \cdot \frac{du}{dx}$.
+    Here, let $u = -\log x$ and $f(u) = u^{\frac{1}{7}}$.
+    $\frac{dy}{du} = \frac{1}{7} u^{\left(\frac{1}{7}-1\right)} = \frac{1}{7} u^{-\frac{6}{7}}$
+    $\frac{du}{dx} = \frac{d}{dx}(-\log x) = -\frac{1}{x}$
+
+3.  **Combine the derivatives:**
+    $\frac{dy}{dx} = \frac{1}{7} (-\log x)^{-\frac{6}{7}} \cdot \left(-\frac{1}{x}\right)$
+    $\frac{dy}{dx} = -\frac{1}{7x} (-\log x)^{-\frac{6}{7}}$
+
+4.  **Convert back to the original form:**
+    Since $-\log x = \log\left(\frac{1}{x}\right)$, substitute this back into the expression:
+    $\frac{dy}{dx} = -\frac{1}{7x} \left(\log\left(\frac{1}{x}\right)\right)^{-\frac{6}{7}}$
+
+5.  **Write with a positive exponent:**
+    $\frac{dy}{dx} = -\frac{1}{7x \left(\log\left(\frac{1}{x}\right)\right)^{\frac{6}{7}}}$
+
+## Problem 2
+
+**Original Function:**
+$y = \sin^4 x + \sin(x^4) + \sin(4x) + x^4$
+
+**Solution:**
+
+To find $\frac{dy}{dx}$, we differentiate each term with respect to $x$.
+
+1.  **Derivative of $\sin^4 x$:**
+    Rewrite as $(\sin x)^4$. Using the chain rule for $u^n$: $n u^{n-1} \cdot \frac{du}{dx}$
+    $\frac{d}{dx}(\sin x)^4 = 4 (\sin x)^3 \cdot \frac{d}{dx}(\sin x) = 4 \sin^3 x \cos x$
+
+2.  **Derivative of $\sin(x^4)$:**
+    Using the chain rule for $\sin(u)$: $\cos(u) \cdot \frac{du}{dx}$
+    $\frac{d}{dx}(\sin(x^4)) = \cos(x^4) \cdot \frac{d}{dx}(x^4) = \cos(x^4) \cdot (4x^3) = 4x^3 \cos(x^4)$
+
+3.  **Derivative of $\sin(4x)$:**
+    Using the chain rule for $\sin(u)$: $\cos(u) \cdot \frac{du}{dx}$
+    $\frac{d}{dx}(\sin(4x)) = \cos(4x) \cdot \frac{d}{dx}(4x) = \cos(4x) \cdot 4 = 4 \cos(4x)$
+
+4.  **Derivative of $x^4$:**
+    Using the power rule:
+    $\frac{d}{dx}(x^4) = 4x^3$
+
+5.  **Combine all derivatives:**
+    $\frac{dy}{dx} = \frac{d}{dx}(\sin^4 x) + \frac{d}{dx}(\sin(x^4)) + \frac{d}{dx}(\sin(4x)) + \frac{d}{dx}(x^4)$
+    $\frac{dy}{dx} = 4 \sin^3 x \cos x + 4x^3 \cos(x^4) + 4 \cos(4x) + 4x^3$
+
+    Alternatively, rearranging terms in the first two parts:
+    $\frac{dy}{dx} = 4 \cos x \sin^3 x + 4x^3 \cos(x^4) + 4 \cos(4x) + 4x^3$

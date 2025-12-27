@@ -1,7 +1,11 @@
 import '../index.css';
 import MathJaxWrapper from "./MathJaxWrapper";
+import ReactMarkdown from "react-markdown";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import 'katex/dist/katex.min.css'; // Make sure this is imported for the math to look right!
 
 function NotesDisplay({ content, onContentChange }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -21,102 +25,19 @@ function NotesDisplay({ content, onContentChange }) {
     setIsEditing(false);
   };
 
-  const formatContent = (text) => {
-    const lines = text.split('\n');
-    const formatted = [];
-    
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      
-      // Chapter/Section headers (look for "Chapter" at start)
-      if (line.match(/^Chapter\s+\d+(\.\d+)?/i)) {
-        formatted.push(
-          <h1 key={i} className="text-3xl font-bold text-gray-900 mt-6 mb-3">
-            {line}
-          </h1>
-        );
-      }
-      // Subheaders (lines that end without punctuation and are relatively short)
-      else if (line.trim() && line.length < 60 && !line.match(/[.!?]$/) && !line.startsWith('↳') && !line.startsWith('□') && i < lines.length - 1 && lines[i + 1].trim()) {
-        // Check if next line is indented or starts with special char (suggests this is a header)
-        if (lines[i + 1].startsWith('↳') || lines[i + 1].startsWith('□') || lines[i + 1].startsWith(' ')) {
-          formatted.push(
-            <h2 key={i} className="text-2xl font-bold text-gray-800 mt-5 mb-2">
-              {line}
-            </h2>
-          );
-        } else {
-          formatted.push(<p key={i} className="text-gray-700 leading-relaxed my-2">{line || '\u00A0'}</p>);
-        }
-      }
-      // Checkbox items (□)
-      else if (line.startsWith('□')) {
-        formatted.push(
-          <div key={i} className="flex items-start gap-2 my-3">
-            <span className="text-blue-600 font-bold text-lg">□</span>
-            <p className="text-gray-800 font-semibold flex-1">{line.substring(1).trim()}</p>
-          </div>
-        );
-      }
-      // Indented items with arrow (↳)
-      else if (line.trim().startsWith('↳')) {
-        const content = line.trim().substring(1).trim();
-        formatted.push(
-          <div key={i} className="flex items-start gap-2 ml-6 my-1.5">
-            <span className="text-purple-600 font-bold">→</span>
-            <p className="text-gray-700 flex-1">{content}</p>
-          </div>
-        );
-      }
-      // EXAMPLE headers
-      else if (line.match(/^EXAMPLE:/i)) {
-        formatted.push(
-          <div key={i} className="bg-blue-50 border-l-4 border-blue-500 p-3 my-4 rounded">
-            <p className="font-bold text-blue-800">{line}</p>
-          </div>
-        );
-      }
-      // Numbered steps (lines starting with digits followed by parenthesis)
-      else if (line.match(/^\d+\)/)) {
-        formatted.push(
-          <div key={i} className="ml-8 my-2">
-            <p className="text-gray-800">{line}</p>
-          </div>
-        );
-      }
-      // Regular indented content (starts with spaces)
-      else if (line.startsWith('   ') && line.trim()) {
-        formatted.push(
-          <p key={i} className="ml-8 text-gray-700 my-1 leading-relaxed">
-            {line.trim()}
-          </p>
-        );
-      }
-      // Empty lines
-      else if (!line.trim()) {
-        formatted.push(<div key={i} className="h-2"></div>);
-      }
-      // Regular text
-      else {
-        formatted.push(
-          <p key={i} className="text-gray-700 leading-relaxed my-2">
-            {line}
-          </p>
-        );
-      }
-    }
-    
-    return formatted;
-  };
-
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6">
+    // Added h-full to ensure it takes available space if needed, 
+    // though the parent controls the height sync.
+    <div className="bg-white rounded-lg shadow-lg p-6 h-full">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold text-gray-800">Your Converted Notes</h2>
+        <h2 className="text-2xl font-bold text-gray-800">
+          Your Converted Notes
+        </h2>
+
         {!isEditing ? (
           <button
             onClick={() => setIsEditing(true)}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+            className="px-4 py-2 bg-blue-500 text-white rounded"
           >
             Edit
           </button>
@@ -124,13 +45,13 @@ function NotesDisplay({ content, onContentChange }) {
           <div className="flex gap-2">
             <button
               onClick={handleSave}
-              className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
+              className="px-4 py-2 bg-green-500 text-white rounded"
             >
               Save
             </button>
             <button
               onClick={handleCancel}
-              className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
+              className="px-4 py-2 bg-gray-500 text-white rounded"
             >
               Cancel
             </button>
@@ -139,26 +60,19 @@ function NotesDisplay({ content, onContentChange }) {
       </div>
 
       {isEditing ? (
-        <div className="space-y-3">
-          <div className="bg-blue-50 border border-blue-200 rounded p-3 text-sm text-gray-700">
-            <p className="font-semibold mb-2">Formatting tips:</p>
-            <ul className="space-y-1 ml-4">
-              <li>• Use ^ for superscript: x^2 → x²</li>
-              <li>• Use _ for subscript: H_2O → H₂O</li>
-              <li>• Use ** for bold: **bold** → <strong>bold</strong></li>
-              <li>• Use / for italics: /italic/ → <em>italic</em></li>
-            </ul>
-          </div>
-          <textarea
-            value={editContent}
-            onChange={(e) => setEditContent(e.target.value)}
-            className="w-full h-96 p-4 border border-gray-300 rounded font-mono text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Edit your notes here..."
-          />
-        </div>
+        <textarea
+          value={editContent}
+          onChange={(e) => setEditContent(e.target.value)}
+          className="w-full h-96 p-4 border rounded font-mono text-sm"
+        />
       ) : (
-        <div className="bg-gray-50 rounded p-6 overflow-auto max-h-[600px]">
-          {formatContent(content)}
+        <div className="prose prose-lg prose-blue max-w-none">
+          <ReactMarkdown
+            remarkPlugins={[remarkMath]}
+            rehypePlugins={[rehypeKatex]}
+          >
+            {content}
+          </ReactMarkdown>
         </div>
       )}
     </div>
@@ -197,13 +111,65 @@ function VideoPlayer({ videoUrl }) {
 export default function SquareAwayLanding() {
   const [files, setFiles] = useState([]);
   const [notesContent, setNotesContent] = useState('');
-  const [notesTitle, setNotesTitle] = useState(''); // <-- make it state
+  const [notesTitle, setNotesTitle] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('');
   const [isGeneratingVideo, setIsGeneratingVideo] = useState(false);
   const [videoUrl, setVideoUrl] = useState('');
+  
   const fileInputRef = useRef(null);
-  const navigate = useNavigate(); // <-- hook to navigate
+  const navigate = useNavigate();
+  
+  // REFS FOR LAYOUT SYNC
+  const notesRef = useRef(null);
+  const chatContainerRef = useRef(null);
+  const messagesEndRef = useRef(null); // To auto-scroll to bottom of chat
+
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatInput, setChatInput] = useState("");
+  const [chatLoading, setChatLoading] = useState(false);
+
+
+  // 1. HEIGHT SYNCHRONIZATION
+  // This effect runs whenever the notes content changes.
+  // It grabs the height of the notes column and forces the chat column to match it.
+  useEffect(() => {
+    if (notesRef.current && chatContainerRef.current) {
+      // Get height of the notes wrapper
+      const height = notesRef.current.clientHeight;
+      // Apply it to the chat wrapper
+      chatContainerRef.current.style.height = `${height}px`;
+    }
+  }, [notesContent]); 
+
+  const sendMessage = async () => {
+    if (!chatInput.trim()) return;
+    
+    const userMsg = chatInput.trim();
+    const newMessage = { role: "user", content: userMsg };
+    const updatedMessages = [...chatMessages, newMessage];
+    setChatMessages(updatedMessages);
+    setChatInput("");
+    setChatLoading(true);
+
+    try {
+      const response = await fetch("http://127.0.0.1:5000/chatbot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          notes: notesContent, 
+          user_message: userMsg,
+          chat_history: chatMessages 
+        })
+      });
+      const data = await response.json();
+      setChatMessages(prev => [...prev, { role: "assistant", content: data.answer }]);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setChatLoading(false);
+    }
+  };
 
   const practiceMessages = [
     "Ready to test your understanding?",
@@ -259,7 +225,6 @@ export default function SquareAwayLanding() {
     setVideoUrl('');
 
     try {
-      // Upload and extract text
       const response = await fetch('http://127.0.0.1:5000/extract-text', {
         method: 'POST',
         body: formData,
@@ -267,14 +232,10 @@ export default function SquareAwayLanding() {
       
       if (response.ok) {
         const result = await response.json();
-        console.log('Extraction successful:', result);
-        
-        // Use the extracted text directly from the API response
         setNotesContent(result.extracted_text);
         setNotesTitle(result.notes_title);
         setIsProcessing(false);
         setLoadingMessage('');
-        // Start video generation
         generateVideo(result.extracted_text);
         
       } else {
@@ -295,11 +256,9 @@ export default function SquareAwayLanding() {
     try {
       const response = await fetch(videoCheckUrl, { method: 'HEAD' });
       if (response.ok) {
-        // Video exists
         setVideoUrl(videoCheckUrl);
         setIsGeneratingVideo(false);
       } else {
-        // Not ready yet, try again in 3 seconds
         setTimeout(pollVideo, 3000);
       }
     } catch (err) {
@@ -319,8 +278,7 @@ export default function SquareAwayLanding() {
       if (response.ok) {
         const result = await response.json();
         if (result.status === 'started') {
-          console.log("Video generation started!");
-          pollVideo(); // start polling
+          pollVideo(); 
         }
       } else {
         alert('Error starting video generation');
@@ -347,7 +305,6 @@ export default function SquareAwayLanding() {
       
       if (response.ok) {
         setNotesContent(newContent);
-        console.log('Notes saved successfully');
       } else {
         alert('Error saving notes');
       }
@@ -359,12 +316,13 @@ export default function SquareAwayLanding() {
 
   const handlePractice = () => {
     if (!notesTitle) return;
-    const sanitizedTitle = encodeURIComponent("Rolle's Theorem and Mean Value Theorem"); // make it URL-safe const sanitizedTitle = encodeURIComponent(notesTitle);
+    const sanitizedTitle = encodeURIComponent("Rolle's Theorem and Mean Value Theorem");
     navigate(`/questions/${sanitizedTitle}`);
   };
 
   return (
     <div className="bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 min-h-screen flex flex-col items-center justify-center p-8">
+
       <h1 className="text-4xl font-bold text-gray-800 mb-8">Upload your Notes to Begin</h1>
       
       <div
@@ -408,29 +366,122 @@ export default function SquareAwayLanding() {
       )}
 
       {isProcessing && <LoadingSpinner message={loadingMessage} />}
-
+      
       {notesContent && !isProcessing && (
-        <div className="mt-8 w-full max-w-4xl">
-          <MathJaxWrapper>
-            <NotesDisplay
-              content={notesContent}
-              onContentChange={handleNotesSave}
-            />
-          </MathJaxWrapper>
+        <div className="mt-8 w-full max-w-6xl">
+          
+          {/* NOTES + CHAT ROW */}
+          <div className="flex gap-6 items-stretch">
+            
+            {/* LEFT: MATH NOTES */}
+            {/* Added ref={notesRef} to measure this side */}
+            <div className="flex-1" ref={notesRef}>
+              <MathJaxWrapper>
+                <NotesDisplay
+                  content={notesContent}
+                  onContentChange={handleNotesSave}
+                />
+              </MathJaxWrapper>
+            </div>
+
+            {/* RIGHT: CHATBOT UI */}
+            {/* Added ref={chatContainerRef} to set the height of this side */}
+            <div
+              ref={chatContainerRef}
+              className="w-[400px] bg-white/70 backdrop-blur-xl rounded-3xl shadow-lg p-6 flex flex-col
+                        border border-blue-100 relative overflow-hidden"
+              // No inline style for height here, it's handled by useEffect
+            >
+              <div className="absolute -top-20 -right-20 w-48 h-48 bg-gradient-to-br from-blue-300/30 to-purple-300/30 rounded-full blur-3xl" />
+
+              <h3 className="text-xl font-semibold text-gray-800 mb-4 relative z-10 flex-none">
+                Chat
+              </h3>
+
+              {/* CHAT MESSAGES AREA */}
+              {/* Added flex-1 and overflow-y-auto so the scrollbar appears HERE, not on the whole page */}
+              <div className="flex-1 overflow-y-auto relative z-10 space-y-4 pr-2 custom-scrollbar">
+                {chatMessages.length === 0 && <p className="italic text-gray-500">Ask questions about your notes here.</p>}
+                
+                {chatMessages.map((msg, idx) => (
+                  <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`rounded-2xl p-4 max-w-[90%] text-sm shadow-sm ${
+                        msg.role === 'user' 
+                        ? 'bg-blue-600 text-white' 
+                        : 'bg-white border border-gray-100 text-gray-800'
+                      }`}>
+                      
+                      {/* 2. TEXT & MATH FORMATTING */}
+                      {/* ReactMarkdown handles bold, headers, lists. 
+                          remarkMath/rehypeKatex handle the LaTeX ($...$) */}
+                      <div className={`prose prose-sm max-w-none ${msg.role === 'user' ? 'prose-invert' : ''}`}>
+                        <ReactMarkdown
+                          remarkPlugins={[remarkMath]}
+                          rehypePlugins={[rehypeKatex]}
+                        >
+                          {msg.content}
+                        </ReactMarkdown>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                
+                {chatLoading && (
+                  <div className="flex justify-start">
+                    <div className="bg-gray-100 rounded-2xl p-4 text-sm text-gray-500 italic">
+                      Thinking...
+                    </div>
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+
+              {/* INPUT AREA */}
+              <div className="mt-4 relative z-10 flex gap-2 flex-none pt-2">
+                <input
+                  type="text"
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  placeholder="Type your question…"
+                  className="flex-1 px-4 py-3 rounded-full bg-white border border-blue-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
+                  onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+                />
+                <button 
+                  onClick={sendMessage}
+                  disabled={chatLoading}
+                  className="px-6 py-3 bg-blue-600 text-white rounded-full font-semibold hover:bg-blue-700 transition-colors shadow-md disabled:opacity-50"
+                >
+                  Send
+                </button>
+              </div>
+
+            </div>
+          </div>
+
+          {/* VIDEO GENERATION LOADING */}
           {isGeneratingVideo && (
             <div className="mt-8">
               <LoadingSpinner message="Generating your video explanation... This may take a few minutes." />
             </div>
           )}
-          
+
+          {/* VIDEO PLAYER */}
           {videoUrl && !isGeneratingVideo && (
             <VideoPlayer videoUrl={videoUrl} />
           )}
+
           {/* QUESTIONS BUTTON CARD */}
           <div className="bg-white rounded-lg shadow-lg p-6 mt-8 flex flex-col items-center">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Practice Questions</h2>
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">
+              Practice Questions
+            </h2>
             <p className="text-gray-700 mb-4 text-center">
-              {practiceMessages[Math.floor(Math.random() * practiceMessages.length)]} Go to the questions page for this topic.
+              {
+                practiceMessages[
+                  Math.floor(Math.random() * practiceMessages.length)
+                ]
+              }{" "}
+              Go to the questions page for this topic.
             </p>
             <button
               onClick={handlePractice}
@@ -441,6 +492,7 @@ export default function SquareAwayLanding() {
           </div>
         </div>
       )}
+
     </div>
   );
 }
